@@ -450,6 +450,14 @@
     <div class="sidebar-inner">
 
       <div>
+        <label>Anthropic API key</label>
+        <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" style="font-family:'DM Sans',sans-serif;letter-spacing:0.04em">
+        <div style="font-size:10px;color:var(--sage);margin-top:6px;line-height:1.6;opacity:0.8">Stored in memory only — never sent anywhere except Anthropic's API.</div>
+      </div>
+
+      <hr class="divider">
+
+      <div>
         <label>Topic / prompt</label>
         <textarea id="prompt-input" placeholder="e.g. 3 signs your nervous system is dysregulated" rows="4"></textarea>
       </div>
@@ -514,10 +522,15 @@ function setStatus(text, active = false) {
   document.getElementById('status-dot').className = 'status-dot' + (active ? ' active' : '');
 }
 
-async function callClaude(systemPrompt, userPrompt) {
+async function callClaude(systemPrompt, userPrompt, apiKey) {
   const res = await fetch(ANTHROPIC_API, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 2000,
@@ -533,6 +546,8 @@ async function callClaude(systemPrompt, userPrompt) {
 async function generateCarousel() {
   const prompt = document.getElementById('prompt-input').value.trim();
   if (!prompt) { setStatus('Enter a topic first.'); return; }
+  const apiKey = document.getElementById('api-key-input').value.trim();
+  if (!apiKey) { setStatus('Paste your Anthropic API key first.'); return; }
 
   const angle = document.getElementById('angle-select').value;
   const count = parseInt(document.getElementById('slides-count').value);
@@ -580,7 +595,7 @@ Number of slides: ${count}
 Generate ${count} slides as a JSON array.`;
 
   try {
-    const raw = await callClaude(system, userMsg);
+    const raw = await callClaude(system, userMsg, apiKey);
     let parsed;
     try {
       const clean = raw.replace(/```json|```/g, '').trim();
@@ -604,6 +619,8 @@ Generate ${count} slides as a JSON array.`;
 
 async function regenSlide(idx) {
   const prompt = document.getElementById('prompt-input').value.trim();
+  const apiKey = document.getElementById('api-key-input').value.trim();
+  if (!apiKey) { setStatus('Paste your Anthropic API key first.'); return; }
   const slide = slides[idx];
   setStatus(`Regenerating slide ${idx + 1}...`, true);
 
@@ -621,7 +638,7 @@ Slide types and fields:
   const userMsg = `Regenerate just this one slide (type: "${slide.type}") for the topic: "${prompt}". Give a fresh take. Return only the JSON object.`;
 
   try {
-    const raw = await callClaude(system, userMsg);
+    const raw = await callClaude(system, userMsg, apiKey);
     const clean = raw.replace(/```json|```/g, '').trim();
     const newSlide = JSON.parse(clean);
     newSlide.type = slide.type; // enforce type
