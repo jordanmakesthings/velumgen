@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Velum — Carousel Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --forest: #0F2F26;
+    --forest-light: #1a4a3a;
+    --charcoal: #111111;
+    --cream: #F2EFE7;
+    --sage: #6F8A7E;
+    --gold: #C9A84C;
+    --muted: #c8c4bb;
+    --dim: #9aaea3;
+    --border: #222;
+    --surface: #181818;
+    --surface2: #1e1e1e;
+  }
+
+  html, body {
+    height: 100%;
+    background: #0d0d0d;
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+  }
+
+  /* ── Layout ── */
+  .app {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    grid-template-rows: 56px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Header ── */
+  header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    border-bottom: 1px solid var(--border);
+    background: #0d0d0d;
+  }
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    font-weight: 300;
+    letter-spacing: 0.35em;
+    color: var(--cream);
+    opacity: 0.8;
+  }
+  .logo span { color: var(--gold); }
+  .header-tag {
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    color: var(--sage);
+    text-transform: uppercase;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .sidebar-inner {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .sidebar-inner::-webkit-scrollbar { width: 4px; }
+  .sidebar-inner::-webkit-scrollbar-track { background: transparent; }
+  .sidebar-inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  label {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    color: var(--sage);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  textarea, select, input[type="text"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    padding: 10px 12px;
+    outline: none;
+    resize: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus, select:focus, input[type="text"]:focus {
+    border-color: var(--gold);
+  }
+  textarea { line-height: 1.6; min-height: 90px; }
+  select { cursor: pointer; appearance: none; }
+  select option { background: #1e1e1e; }
+
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '↓';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--sage);
+    font-size: 11px;
+    pointer-events: none;
+  }
+
+  .btn-generate {
+    width: 100%;
+    background: var(--gold);
+    color: var(--charcoal);
+    border: none;
+    border-radius: 3px;
+    padding: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-generate:hover { opacity: 0.88; }
+  .btn-generate:disabled { opacity: 0.35; cursor: default; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  /* Slide editor list */
+  .slide-list { display: flex; flex-direction: column; gap: 10px; }
+  .slide-editor-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .slide-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .slide-editor-header:hover { border-bottom-color: var(--border); }
+  .slide-editor-header.open { border-bottom-color: var(--border); }
+  .slide-num {
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+  .slide-type-label {
+    font-size: 11px;
+    color: var(--dim);
+  }
+  .chevron {
+    font-size: 10px;
+    color: var(--sage);
+    transition: transform 0.2s;
+  }
+  .chevron.open { transform: rotate(180deg); }
+  .slide-editor-body { display: none; padding: 14px; flex-direction: column; gap: 10px; }
+  .slide-editor-body.open { display: flex; }
+  .field-group { display: flex; flex-direction: column; gap: 4px; }
+  .field-group label { margin-bottom: 0; }
+
+  .btn-regen-slide {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--sage);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    align-self: flex-start;
+  }
+  .btn-regen-slide:hover { border-color: var(--gold); color: var(--gold); }
+
+  .status-bar {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--sage);
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--sage);
+    flex-shrink: 0;
+  }
+  .status-dot.active { background: var(--gold); animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ── Canvas ── */
+  .canvas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    overflow: auto;
+    padding: 40px;
+    background: #0d0d0d;
+  }
+
+  /* ── Slide ── */
+  .slide-container {
+    position: relative;
+    width: 480px;
+    height: 480px;
+    flex-shrink: 0;
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 24px 80px rgba(0,0,0,0.7);
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 44px;
+    background: var(--charcoal);
+  }
+  .slide.active { display: flex; }
+
+  .corner-mark {
+    position: absolute;
+    top: 18px; right: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+    color: var(--sage);
+    letter-spacing: 0.08em;
+    opacity: 0.6;
+  }
+  .velum-wordmark {
+    position: absolute;
+    bottom: 16px; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.32em;
+    color: var(--sage);
+    opacity: 0.5;
+    white-space: nowrap;
+  }
+
+  /* slide content styles */
+  .s-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px; font-weight: 400;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 18px;
+    position: relative; text-align: center;
+  }
+  .s-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px; font-weight: 300; line-height: 1.15;
+    color: var(--cream); text-align: center;
+    position: relative; max-width: 350px;
+  }
+  .s-headline em { font-style: italic; color: var(--gold); }
+  .s-rule { width: 28px; height: 1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; position: relative; }
+  .s-subtext {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 300; letter-spacing: 0.12em;
+    color: var(--sage); text-align: center;
+    margin-top: 12px; position: relative;
+  }
+
+  .s-body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 300; line-height: 1.8;
+    color: var(--muted); text-align: center;
+    max-width: 340px; position: relative;
+  }
+  .s-exercise-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px; font-weight: 400; letter-spacing: 0.25em;
+    color: var(--gold); text-transform: uppercase;
+    margin-bottom: 6px; position: relative;
+  }
+  .s-exercise-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; font-weight: 300;
+    color: var(--cream);
+    margin-bottom: 4px; position: relative;
+  }
+  .s-exercise-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 300; letter-spacing: 0.1em;
+    color: var(--sage);
+    margin-bottom: 22px; position: relative;
+  }
+
+  .s-cta-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 29px; font-weight: 300; font-style: italic; line-height: 1.3;
+    color: var(--cream); text-align: center;
+    max-width: 310px; margin-bottom: 18px; position: relative;
+  }
+  .s-cta-body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 300; line-height: 1.75;
+    color: var(--dim); text-align: center;
+    max-width: 290px; margin-bottom: 26px; position: relative;
+  }
+  .s-link-nudge {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 400; letter-spacing: 0.18em;
+    color: var(--gold); text-transform: uppercase;
+    position: relative;
+  }
+
+  /* ── Slide Nav ── */
+  .slide-nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .nav-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--cream);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s;
+  }
+  .nav-btn:hover { border-color: var(--gold); }
+  .nav-btn:disabled { opacity: 0.2; cursor: default; }
+  .dots { display: flex; gap: 5px; align-items: center; }
+  .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #333; cursor: pointer;
+    transition: background 0.2s, width 0.2s;
+  }
+  .dot.active { background: var(--gold); width: 14px; border-radius: 3px; }
+  .slide-count { font-size: 11px; color: var(--sage); letter-spacing: 0.1em; min-width: 36px; text-align: center; }
+
+  /* ── Empty state ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+  }
+  .empty-glyph {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px; font-weight: 300;
+    color: var(--forest-light);
+    line-height: 1;
+  }
+  .empty-text {
+    font-size: 12px; color: var(--sage);
+    letter-spacing: 0.05em; line-height: 1.7;
+    max-width: 260px;
+  }
+
+  /* ── Breath wave graphic ── */
+  .breath-graphic {
+    display: flex; gap: 24px; align-items: flex-end;
+    position: relative;
+  }
+  .breath-col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .breath-lbl {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9px; font-weight: 400; letter-spacing: 0.15em;
+  }
+  .breath-lbl.stress { color: #c97c5c; }
+  .breath-lbl.calm { color: var(--sage); }
+  .divider-v { width: 1px; height: 44px; background: #2a2a2a; align-self: center; }
+
+  /* loading spinner */
+  .spinner {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border: 1.5px solid var(--sage);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* slide bg overlays */
+  .bg-radial { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 60%, #1a4a3a 0%, #111111 70%); }
+  .bg-linear { position: absolute; inset: 0; background: linear-gradient(155deg, #0F2F26 0%, #111111 55%); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">V<span>E</span>LUM</div>
+    <div class="header-tag">Carousel Generator</div>
+  </header>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <div>
+        <label>Topic / prompt</label>
+        <textarea id="prompt-input" placeholder="e.g. 3 signs your nervous system is dysregulated" rows="4"></textarea>
+      </div>
+
+      <div>
+        <label>Content angle</label>
+        <div class="select-wrap">
+          <select id="angle-select">
+            <option value="educational">Educational — teach the concept</option>
+            <option value="howto">How-to — step by step</option>
+            <option value="myth">Myth-busting — challenge assumptions</option>
+            <option value="signs">Signs / symptoms — awareness</option>
+            <option value="benefits">Benefits — why it matters</option>
+            <option value="story">Story-led — personal narrative arc</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label>Number of slides</label>
+        <div class="select-wrap">
+          <select id="slides-count">
+            <option value="4">4 slides</option>
+            <option value="5">5 slides</option>
+            <option value="6" selected>6 slides</option>
+            <option value="7">7 slides</option>
+            <option value="8">8 slides</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-generate" id="gen-btn" onclick="generateCarousel()">Generate Carousel</button>
+
+      <hr class="divider">
+
+      <div id="slide-editors" class="slide-list" style="display:none"></div>
+
+    </div>
+    <div class="status-bar" id="status-bar">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Ready — enter a topic to begin</span>
+    </div>
+  </aside>
+
+  <!-- Canvas -->
+  <main class="canvas" id="canvas">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-glyph">◯</div>
+      <div class="empty-text">Enter a topic and hit Generate.<br>Your carousel will appear here.</div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
+let slides = [];
+let current = 0;
+
+function setStatus(text, active = false) {
+  document.getElementById('status-text').textContent = text;
+  document.getElementById('status-dot').className = 'status-dot' + (active ? ' active' : '');
+}
+
+async function callClaude(systemPrompt, userPrompt) {
+  const res = await fetch(ANTHROPIC_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
+    })
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+async function generateCarousel() {
+  const prompt = document.getElementById('prompt-input').value.trim();
+  if (!prompt) { setStatus('Enter a topic first.'); return; }
+
+  const angle = document.getElementById('angle-select').value;
+  const count = parseInt(document.getElementById('slides-count').value);
+
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  setStatus('Generating carousel...', true);
+
+  const angleMap = {
+    educational: 'educational — teach the concept clearly and progressively',
+    howto: 'step-by-step how-to guide',
+    myth: 'myth-busting — open with the myth, then dismantle it',
+    signs: 'signs and symptoms awareness — help people recognise something in themselves',
+    benefits: 'benefits-led — why this practice or concept matters',
+    story: 'story-led — arc from struggle to insight to invitation'
+  };
+
+  const system = `You are a content strategist writing Instagram carousel copy for Velum, a wellness app focused on nervous system regulation, breathwork, meditation, EFT tapping, somatic practices, and subconscious rewiring.
+
+Brand voice: quiet, introspective, slightly philosophical. Dark and immersive. Serious and effective — not motivational fluff, not overly mystical. No "we're glad you're here" warmth. No generic positivity. Language that feels like it knows something.
+
+You must respond with ONLY valid JSON. No preamble, no backticks, no explanation.
+
+The JSON structure is an array of slide objects. Each slide has a "type" field. Types and their fields:
+
+- type "hook": { eyebrow, headline (may contain one <em> wrapped word), subtext }
+- type "why": { body (2-3 sentences explaining the concept), graphic: "wave" }
+- type "exercise": { num (e.g. "01"), name, subtitle, graphic: "box"|"wave478"|"circle" }
+- type "concept": { eyebrow, headline, body }
+- type "cta": { headline (italic tone), body (1-2 sentences, honest about what's in the app — it has guided breathwork, meditation, EFT tapping, somatic practices, and self-hypnosis sessions), nudge: "link in bio" }
+
+Rules:
+- First slide is always type "hook"
+- Last slide is always type "cta" 
+- Middle slides vary between "why", "exercise", "concept"
+- Keep copy concise — slides are 480x480px
+- Never invent features. The app has: breathwork sessions, guided meditation, EFT tapping, somatic practices, self-hypnosis
+- For exercise slides, pick the graphic that fits: "box" for box breathing, "wave478" for 4-7-8, "circle" for coherent/equal breathing, "wave" otherwise
+- No buttons, no CTAs on non-CTA slides`;
+
+  const userMsg = `Topic: "${prompt}"
+Angle: ${angleMap[angle]}
+Number of slides: ${count}
+
+Generate ${count} slides as a JSON array.`;
+
+  try {
+    const raw = await callClaude(system, userMsg);
+    let parsed;
+    try {
+      const clean = raw.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+    } catch (e) {
+      throw new Error('Could not parse response as JSON');
+    }
+
+    slides = parsed;
+    current = 0;
+    renderCarousel();
+    renderSidebarEditors();
+    setStatus(`${slides.length} slides generated — click any text to edit`, false);
+  } catch (err) {
+    setStatus('Error: ' + err.message, false);
+    console.error(err);
+  }
+
+  btn.disabled = false;
+}
+
+async function regenSlide(idx) {
+  const prompt = document.getElementById('prompt-input').value.trim();
+  const slide = slides[idx];
+  setStatus(`Regenerating slide ${idx + 1}...`, true);
+
+  const system = `You are a content strategist writing Instagram carousel copy for Velum, a wellness app. Respond with ONLY valid JSON for a single slide object. No preamble, backticks, or explanation.
+
+Brand voice: quiet, introspective, slightly philosophical. Serious and effective. No fluff.
+
+Slide types and fields:
+- type "hook": { eyebrow, headline, subtext }
+- type "why": { body, graphic: "wave" }
+- type "exercise": { num, name, subtitle, graphic: "box"|"wave478"|"circle" }
+- type "concept": { eyebrow, headline, body }
+- type "cta": { headline, body, nudge: "link in bio" }`;
+
+  const userMsg = `Regenerate just this one slide (type: "${slide.type}") for the topic: "${prompt}". Give a fresh take. Return only the JSON object.`;
+
+  try {
+    const raw = await callClaude(system, userMsg);
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const newSlide = JSON.parse(clean);
+    newSlide.type = slide.type; // enforce type
+    slides[idx] = newSlide;
+    renderCarousel();
+    renderSidebarEditors();
+    goTo(idx);
+    setStatus(`Slide ${idx + 1} regenerated`, false);
+  } catch (err) {
+    setStatus('Regen error: ' + err.message, false);
+  }
+}
+
+/* ── Render carousel ── */
+function renderCarousel() {
+  const canvas = document.getElementById('canvas');
+  document.getElementById('empty-state')?.remove();
+
+  // Remove old carousel if present
+  canvas.querySelectorAll('.slide-container, .slide-nav, .slide-count').forEach(el => el.remove());
+
+  const container = document.createElement('div');
+  container.className = 'slide-container';
+  container.id = 'carousel';
+
+  slides.forEach((slide, i) => {
+    const el = buildSlideEl(slide, i);
+    if (i === current) el.classList.add('active');
+    container.appendChild(el);
+  });
+
+  canvas.appendChild(container);
+
+  // Nav
+  const nav = document.createElement('div');
+  nav.className = 'slide-nav';
+  nav.innerHTML = `
+    <button class="nav-btn" id="prev-btn" onclick="move(-1)" ${current === 0 ? 'disabled' : ''}>←</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" id="next-btn" onclick="move(1)" ${current === slides.length - 1 ? 'disabled' : ''}>→</button>
+  `;
+  canvas.appendChild(nav);
+
+  const countEl = document.createElement('div');
+  countEl.className = 'slide-count';
+  countEl.id = 'slide-count';
+  countEl.textContent = `${current + 1} of ${slides.length}`;
+  canvas.appendChild(countEl);
+
+  buildDots();
+}
+
+function buildSlideEl(slide, i) {
+  const el = document.createElement('div');
+  el.className = 'slide';
+  el.id = `slide-${i}`;
+
+  const cm = `<div class="corner-mark">${String(i + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}</div>`;
+  const wm = `<div class="velum-wordmark">V E L U M</div>`;
+
+  let inner = '';
+  const t = slide.type;
+
+  if (t === 'hook') {
+    inner = `
+      <div class="bg-radial"></div>
+      ${cm}
+      <div class="s-eyebrow" contenteditable="true">${slide.eyebrow || 'breathwork'}</div>
+      <div class="s-headline" contenteditable="true">${slide.headline || ''}</div>
+      <div class="s-rule"></div>
+      <div class="s-subtext" contenteditable="true">${slide.subtext || ''}</div>
+      ${wm}`;
+  } else if (t === 'why') {
+    inner = `
+      ${cm}
+      <div class="s-body" contenteditable="true" style="margin-bottom:28px">${slide.body || ''}</div>
+      ${buildGraphic('wave', slide)}
+      ${wm}`;
+  } else if (t === 'exercise') {
+    inner = `
+      ${cm}
+      <div class="s-exercise-title" contenteditable="true">Exercise ${slide.num || String(i).padStart(2,'0')}</div>
+      <div class="s-exercise-name" contenteditable="true">${slide.name || ''}</div>
+      <div class="s-exercise-sub" contenteditable="true">${slide.subtitle || ''}</div>
+      ${buildGraphic(slide.graphic, slide)}
+      ${wm}`;
+  } else if (t === 'concept') {
+    inner = `
+      ${cm}
+      <div class="s-eyebrow" contenteditable="true">${slide.eyebrow || ''}</div>
+      <div class="s-headline" style="font-size:26px" contenteditable="true">${slide.headline || ''}</div>
+      <div class="s-rule"></div>
+      <div class="s-body" style="margin-top:16px;font-size:12.5px" contenteditable="true">${slide.body || ''}</div>
+      ${wm}`;
+  } else if (t === 'cta') {
+    inner = `
+      <div class="bg-linear"></div>
+      ${cm}
+      <div class="s-eyebrow" contenteditable="true">go deeper</div>
+      <div class="s-cta-headline" contenteditable="true">${slide.headline || ''}</div>
+      <div class="s-cta-body" contenteditable="true">${slide.body || ''}</div>
+      <div class="s-link-nudge" contenteditable="true">↑ link in bio</div>
+      ${wm}`;
+  } else {
+    inner = `${cm}<div class="s-body" contenteditable="true">${JSON.stringify(slide)}</div>${wm}`;
+  }
+
+  el.innerHTML = inner;
+  return el;
+}
+
+function buildGraphic(type, slide) {
+  if (type === 'wave') {
+    return `<div class="breath-graphic">
+      <div class="breath-col">
+        <div class="breath-lbl stress">STRESS BREATH</div>
+        <svg width="110" height="44" viewBox="0 0 110 44">
+          <polyline points="0,22 7,9 13,33 19,11 25,35 30,7 36,31 41,13 47,37 53,9 59,29 64,14 70,35 75,11 81,33 87,13 93,35 99,16 105,31 110,20" fill="none" stroke="#c97c5c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="divider-v"></div>
+      <div class="breath-col">
+        <div class="breath-lbl calm">CALM BREATH</div>
+        <svg width="110" height="44" viewBox="0 0 110 44">
+          <path d="M0,28 C18,28 28,6 55,6 C82,6 92,28 110,28" fill="none" stroke="#6F8A7E" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>`;
+  }
+  if (type === 'box') {
+    return `<svg width="210" height="210" viewBox="0 0 210 210">
+      <rect x="40" y="40" width="130" height="130" fill="none" stroke="#1a4a3a" stroke-width="1.5" rx="2"/>
+      <circle cx="40" cy="40" r="2.5" fill="#C9A84C" opacity="0.8"/>
+      <circle cx="170" cy="40" r="2.5" fill="#C9A84C" opacity="0.8"/>
+      <circle cx="170" cy="170" r="2.5" fill="#C9A84C" opacity="0.8"/>
+      <circle cx="40" cy="170" r="2.5" fill="#C9A84C" opacity="0.8"/>
+      <text x="105" y="26" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" fill="#C9A84C" letter-spacing="0.12em">INHALE</text>
+      <text x="105" y="38" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="13" font-weight="300" fill="#F2EFE7" opacity="0.65">4 s</text>
+      <text x="196" y="101" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" fill="#C9A84C" letter-spacing="0.12em" transform="rotate(90 196 101)">HOLD</text>
+      <text x="203" y="108" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="13" font-weight="300" fill="#F2EFE7" opacity="0.65">4 s</text>
+      <text x="105" y="190" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" fill="#C9A84C" letter-spacing="0.12em">EXHALE</text>
+      <text x="105" y="202" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="13" font-weight="300" fill="#F2EFE7" opacity="0.65">4 s</text>
+      <text x="14" y="101" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9.5" fill="#C9A84C" letter-spacing="0.12em" transform="rotate(-90 14 101)">HOLD</text>
+      <text x="7" y="108" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="13" font-weight="300" fill="#F2EFE7" opacity="0.65">4 s</text>
+      <line x1="50" y1="40" x2="155" y2="40" stroke="#C9A84C" stroke-width="0.7" opacity="0.35" marker-end="url(#ag)"/>
+      <line x1="170" y1="50" x2="170" y2="155" stroke="#C9A84C" stroke-width="0.7" opacity="0.35" marker-end="url(#ag)"/>
+      <line x1="160" y1="170" x2="55" y2="170" stroke="#C9A84C" stroke-width="0.7" opacity="0.35" marker-end="url(#ag)"/>
+      <line x1="40" y1="160" x2="40" y2="55" stroke="#C9A84C" stroke-width="0.7" opacity="0.35" marker-end="url(#ag)"/>
+      <defs><marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 2L8 5L2 8" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+      <text x="105" y="102" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8.5" font-weight="300" fill="#6F8A7E" letter-spacing="0.1em">A SIMPLE RESET</text>
+    </svg>`;
+  }
+  if (type === 'wave478') {
+    return `<svg width="310" height="124" viewBox="0 0 310 124">
+      <path d="M8,108 C46,108 56,18 84,18 C104,18 108,18 124,18 C148,18 158,108 310,108" fill="none" stroke="#1a4a3a" stroke-width="1"/>
+      <path d="M8,108 C46,108 56,18 84,18 C104,18 108,18 124,18 C148,18 158,108 310,108" fill="none" stroke="#6F8A7E" stroke-width="1.4" opacity="0.8"/>
+      <path d="M8,108 C46,108 56,18 84,18 C104,18 108,18 124,18 C148,18 158,108 310,108 L310,116 L8,116 Z" fill="#0F2F26" opacity="0.45"/>
+      <text x="40" y="70" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" fill="#C9A84C" letter-spacing="0.1em">INHALE</text>
+      <text x="40" y="83" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="12" font-weight="300" fill="#F2EFE7" opacity="0.7">4 s</text>
+      <text x="104" y="10" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" fill="#C9A84C" letter-spacing="0.1em">HOLD</text>
+      <text x="104" y="23" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="12" font-weight="300" fill="#F2EFE7" opacity="0.7">7 s</text>
+      <text x="224" y="70" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" fill="#C9A84C" letter-spacing="0.1em">EXHALE</text>
+      <text x="224" y="83" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="12" font-weight="300" fill="#F2EFE7" opacity="0.7">8 s</text>
+      <circle cx="84" cy="18" r="2.2" fill="#C9A84C" opacity="0.7"/>
+      <circle cx="124" cy="18" r="2.2" fill="#C9A84C" opacity="0.7"/>
+    </svg>`;
+  }
+  if (type === 'circle') {
+    return `<svg width="230" height="172" viewBox="0 0 230 172">
+      <circle cx="115" cy="86" r="66" fill="none" stroke="#1a4a3a" stroke-width="1.4"/>
+      <circle cx="115" cy="86" r="38" fill="#0F2F26" stroke="#C9A84C" stroke-width="0.8" opacity="0.7"/>
+      <text x="24" y="82" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" fill="#C9A84C" letter-spacing="0.1em">INHALE</text>
+      <text x="24" y="95" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="13" font-weight="300" fill="#F2EFE7" opacity="0.7">5 s</text>
+      <text x="206" y="82" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" fill="#C9A84C" letter-spacing="0.1em">EXHALE</text>
+      <text x="206" y="95" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="13" font-weight="300" fill="#F2EFE7" opacity="0.7">5 s</text>
+      <text x="115" y="83" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#6F8A7E" letter-spacing="0.1em">EVEN</text>
+      <text x="115" y="94" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#6F8A7E" letter-spacing="0.1em">RHYTHM</text>
+      <line x1="50" y1="86" x2="180" y2="86" stroke="#1a4a3a" stroke-width="0.7" stroke-dasharray="3 4"/>
+      <path d="M108,20 A66,66 0 0,1 181,86" fill="none" stroke="#C9A84C" stroke-width="0.8" opacity="0.4"/>
+      <path d="M110,20 L115,20 L113,26" fill="none" stroke="#C9A84C" stroke-width="1" stroke-linecap="round"/>
+      <path d="M122,152 A66,66 0 0,1 49,86" fill="none" stroke="#C9A84C" stroke-width="0.8" opacity="0.4"/>
+      <path d="M120,152 L115,152 L117,146" fill="none" stroke="#C9A84C" stroke-width="1" stroke-linecap="round"/>
+      <text x="115" y="164" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8.5" fill="#6F8A7E" font-weight="300" letter-spacing="0.05em">continue for 5 minutes</text>
+    </svg>`;
+  }
+  // fallback: no graphic
+  return '';
+}
+
+/* ── Sidebar slide editors ── */
+function renderSidebarEditors() {
+  const container = document.getElementById('slide-editors');
+  container.style.display = 'flex';
+  container.innerHTML = '';
+
+  slides.forEach((slide, i) => {
+    const card = document.createElement('div');
+    card.className = 'slide-editor-card';
+
+    const typeLabels = { hook: 'Hook', why: 'Why it works', exercise: 'Exercise', concept: 'Concept', cta: 'Call to action' };
+    const label = typeLabels[slide.type] || slide.type;
+
+    card.innerHTML = `
+      <div class="slide-editor-header" id="seh-${i}" onclick="toggleEditor(${i})">
+        <span class="slide-num">Slide ${i + 1}</span>
+        <span class="slide-type-label">${label}</span>
+        <span class="chevron" id="chev-${i}">▾</span>
+      </div>
+      <div class="slide-editor-body" id="seb-${i}">
+        ${buildEditorFields(slide, i)}
+        <button class="btn-regen-slide" onclick="regenSlide(${i})">↺ Regenerate slide</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function buildEditorFields(slide, i) {
+  const fields = [];
+  const t = slide.type;
+  const fieldDefs = {
+    hook:     [['eyebrow','Eyebrow'],['headline','Headline'],['subtext','Subtext']],
+    why:      [['body','Body copy']],
+    exercise: [['num','Exercise #'],['name','Name'],['subtitle','Subtitle']],
+    concept:  [['eyebrow','Eyebrow'],['headline','Headline'],['body','Body copy']],
+    cta:      [['headline','Headline'],['body','Body copy']],
+  };
+  (fieldDefs[t] || []).forEach(([key, lbl]) => {
+    const val = (slide[key] || '').replace(/"/g, '&quot;');
+    const isLong = ['body'].includes(key);
+    fields.push(`
+      <div class="field-group">
+        <label>${lbl}</label>
+        ${isLong
+          ? `<textarea rows="3" onchange="updateSlideField(${i},'${key}',this.value)">${slide[key] || ''}</textarea>`
+          : `<input type="text" value="${val}" onchange="updateSlideField(${i},'${key}',this.value)">`
+        }
+      </div>`);
+  });
+  return fields.join('');
+}
+
+function toggleEditor(i) {
+  const body = document.getElementById(`seb-${i}`);
+  const header = document.getElementById(`seh-${i}`);
+  const chev = document.getElementById(`chev-${i}`);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  header.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+  if (!isOpen) goTo(i);
+}
+
+function updateSlideField(idx, key, value) {
+  slides[idx][key] = value;
+  // Re-render just that slide
+  const existing = document.getElementById(`slide-${idx}`);
+  if (existing) {
+    const newEl = buildSlideEl(slides[idx], idx);
+    newEl.id = `slide-${idx}`;
+    if (existing.classList.contains('active')) newEl.classList.add('active');
+    existing.replaceWith(newEl);
+  }
+}
+
+/* ── Navigation ── */
+function buildDots() {
+  const dotsEl = document.getElementById('dots');
+  if (!dotsEl) return;
+  dotsEl.innerHTML = '';
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+}
+
+function goTo(n) {
+  const allSlides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('dots');
+  if (!allSlides.length || !dotsEl) return;
+  allSlides[current].classList.remove('active');
+  dotsEl.children[current]?.classList.remove('active');
+  current = n;
+  allSlides[current].classList.add('active');
+  dotsEl.children[current]?.classList.add('active');
+  document.getElementById('slide-count').textContent = `${current + 1} of ${slides.length}`;
+  document.getElementById('prev-btn').disabled = current === 0;
+  document.getElementById('next-btn').disabled = current === slides.length - 1;
+}
+
+function move(dir) {
+  const next = current + dir;
+  if (next >= 0 && next < slides.length) goTo(next);
+}
+
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.isContentEditable) return;
+  if (e.key === 'ArrowRight') move(1);
+  if (e.key === 'ArrowLeft') move(-1);
+});
+</script>
+</body>
+</html>
