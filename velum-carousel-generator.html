@@ -32,6 +32,16 @@ select option{background:#1e1e1e}
 .mb.off{background:var(--s2);color:var(--sg);font-weight:400}
 .gbtn{width:100%;background:var(--gd);color:var(--ch);border:none;border-radius:3px;padding:12px;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
 .gbtn:hover{opacity:.88}
+.ftbar{position:fixed;background:#1e1e1e;border:1px solid #333;border-radius:6px;padding:4px 6px;display:none;gap:4px;align-items:center;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.6)}
+.ftbar button{background:none;border:none;color:#c8c4bb;cursor:pointer;font-size:13px;padding:4px 7px;border-radius:3px;font-family:'DM Sans',sans-serif}
+.ftbar button:hover{background:#333;color:#F2EFE7}
+.ftbar .sep{width:1px;height:16px;background:#333}
+.ftbar input[type=color]{width:22px;height:22px;border:none;background:none;cursor:pointer;padding:0}
+.dload-btn{background:transparent;border:1px solid #222;border-radius:3px;color:#6F8A7E;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:400;letter-spacing:.15em;text-transform:uppercase;padding:8px 14px;cursor:pointer;transition:border-color .2s,color .2s;width:100%}
+.dload-btn:hover{border-color:#C9A84C;color:#C9A84C}
+.logo-preview{width:100%;height:48px;border:1px dashed #333;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6F8A7E;font-size:11px;letter-spacing:.1em;position:relative;overflow:hidden}
+.logo-preview img{max-height:36px;max-width:140px;object-fit:contain}
+
 .gbtn:disabled{opacity:.35;cursor:default}
 .div{border:none;border-top:1px solid var(--br)}
 .hint{font-size:10px;color:var(--sg);margin-top:7px;line-height:1.6;opacity:.8}
@@ -102,7 +112,7 @@ select option{background:#1e1e1e}
   <div class="si">
     <div>
       <label>Anthropic API key</label>
-      <input type="password" id="akey" placeholder="sk-ant-..." autocomplete="off" id="akey">
+      <input type="password" id="akey" placeholder="sk-ant-..." autocomplete="off">
       <div class="hint">Stays in memory only.</div>
     </div>
     <hr class="div">
@@ -154,6 +164,17 @@ select option{background:#1e1e1e}
     <div class="sdot" id="sdot"></div>
     <span id="stxt">Ready -- enter a topic or paste your script</span>
   </div>
+
+<hr class="div">
+<div>
+  <label>Logo</label>
+  <div class="logo-preview" id="logo-preview" onclick="document.getElementById('logo-file').click()">
+    <span id="logo-hint">+ Upload logo</span>
+    <img id="logo-img" style="display:none">
+  </div>
+  <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="loadLogo(this)">
+</div>
+<button class="dload-btn" onclick="dlAll()">↓ Download all slides</button>
 </aside>
 <main class="canvas" id="canvas">
   <div class="es" id="empty">
@@ -161,6 +182,15 @@ select option{background:#1e1e1e}
     <div class="et">Enter a topic or paste your script, then hit Generate.</div>
   </div>
 </main>
+
+<div class="ftbar" id="ftbar">
+  <button onclick="fmt('bold')" title="Bold"><b>B</b></button>
+  <button onclick="fmt('italic')" title="Italic"><i>I</i></button>
+  <button onclick="fmt('underline')" title="Underline"><u>U</u></button>
+  <div class="sep"></div>
+  <input type="color" id="ftcolor" value="#C9A84C" onchange="fmt('foreColor',this.value)" title="Text color">
+  <button onclick="fmt('removeFormat')" title="Clear">✕</button>
+</div>
 </div>
 <script>
 const AAPI='https://api.anthropic.com/v1/messages';
@@ -328,6 +358,91 @@ window.addEventListener('DOMContentLoaded',()=>{
   const k=localStorage.getItem('velum_key');
   if(k)document.getElementById('akey').value=k;
 });
+
+
+// Formatting toolbar
+let logoDataUrl = null;
+
+document.addEventListener('selectionchange', () => {
+  const sel = window.getSelection();
+  const tb = document.getElementById('ftbar');
+  if (!sel || sel.isCollapsed || !sel.toString()) { tb.style.display='none'; return; }
+  const range = sel.getRangeAt(0);
+  const rect = range.getBoundingClientRect();
+  tb.style.display = 'flex';
+  tb.style.left = Math.max(8, rect.left + rect.width/2 - 80) + 'px';
+  tb.style.top = (rect.top - 48 + window.scrollY) + 'px';
+});
+
+function fmt(cmd, val) {
+  document.execCommand(cmd, false, val || null);
+  document.getElementById('ftbar').style.display = 'none';
+}
+
+// Logo
+function loadLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    logoDataUrl = e.target.result;
+    const img = document.getElementById('logo-img');
+    img.src = logoDataUrl;
+    img.style.display = 'block';
+    document.getElementById('logo-hint').style.display = 'none';
+    updateLogosOnSlides();
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateLogosOnSlides() {
+  document.querySelectorAll('.slide-logo').forEach(el => el.remove());
+  if (!logoDataUrl) return;
+  document.querySelectorAll('.slide').forEach(slide => {
+    const img = document.createElement('img');
+    img.className = 'slide-logo';
+    img.src = logoDataUrl;
+    img.style.cssText = 'position:absolute;bottom:32px;right:20px;max-height:28px;max-width:80px;object-fit:contain;opacity:0.8';
+    slide.appendChild(img);
+  });
+}
+
+// Download all slides as PNGs
+async function dlAll() {
+  if (!slides.length) { alert('Generate a carousel first.'); return; }
+  const sc = document.getElementById('carousel');
+  if (!sc) return;
+  const allSlides = sc.querySelectorAll('.slide');
+  
+  // Load html2canvas
+  if (!window.html2canvas) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  const st = document.getElementById('stxt');
+  for (let i = 0; i < allSlides.length; i++) {
+    st.textContent = `Exporting slide ${i+1} of ${allSlides.length}...`;
+    const slide = allSlides[i];
+    const wasHidden = !slide.classList.contains('active');
+    slide.classList.add('active');
+    await new Promise(r => setTimeout(r, 80));
+    const canvas = await html2canvas(slide, { scale: 2, useCORS: true, backgroundColor: '#111111', width: 480, height: 480 });
+    const a = document.createElement('a');
+    a.download = `velum-slide-${String(i+1).padStart(2,'0')}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    await new Promise(r => setTimeout(r, 300));
+    if (wasHidden) slide.classList.remove('active');
+  }
+  // Restore active slide
+  goTo(cur);
+  st.textContent = `${allSlides.length} slides downloaded`;
+}
 
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'||e.target.isContentEditable)return;
