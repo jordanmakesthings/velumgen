@@ -186,7 +186,7 @@ select option{background:#1e1e1e}
   <button onclick="fmt('italic')"><i>I</i></button>
   <button onclick="fmt('underline')"><u>U</u></button>
   <div class="fsep"></div>
-  <div class="fcolor" title="Custom colour"><input type="color" class="fcolor-swatch" id="ftcolor" value="#ffffff" onchange="fmt('foreColor',this.value)"></div>
+  <div class="fcolor" title="Custom colour"><input type="color" class="fcolor-swatch" id="ftcolor" value="#ffffff" onmousedown="saveSelection()" onchange="restoreAndApply('foreColor',this.value)"></div>
   <button onclick="fmt('foreColor','#C9A84C')" style="color:#C9A84C;border-color:#C9A84C;font-size:10px;letter-spacing:.05em">Gold</button>
   <button onclick="fmt('foreColor','#F2EFE7')" style="font-size:10px;letter-spacing:.05em">Cream</button>
   <button onclick="fmt('foreColor','#6F8A7E')" style="color:#6F8A7E;font-size:10px;letter-spacing:.05em">Sage</button>
@@ -306,7 +306,7 @@ function bslide(s,i){
   else if(t==='why')inner=`${cm}<div class="sbd" contenteditable="true" style="margin-bottom:28px">${s.body||''}</div>${gfx('wave')}${wm}`;
   else if(t==='exercise')inner=`${cm}<div class="set" contenteditable="true">Exercise ${s.num||String(i).padStart(2,'0')}</div><div class="sen" contenteditable="true">${s.name||''}</div><div class="ses" contenteditable="true">${s.subtitle||''}</div>${gfx(s.graphic)}${wm}`;
   else if(t==='concept')inner=`${cm}<div class="sey" contenteditable="true">${s.eyebrow||''}</div><div class="shl" style="font-size:26px" contenteditable="true">${s.headline||''}</div><div class="srl"></div><div class="sbd" style="margin-top:16px;font-size:12.5px" contenteditable="true">${s.body||''}</div>${wm}`;
-  else if(t==='cta')inner=`<div class="bgl"></div>${cm}<div class="sey" contenteditable="true">go deeper</div><div class="sch" contenteditable="true">${s.headline||''}</div><div class="scb" contenteditable="true">${s.body||''}</div><div class="sln">&#8593; link in bio</div>${wm}`;
+  else if(t==='cta')inner=`<div class="bgl"></div>${cm}<div class="sey" contenteditable="true">go deeper</div><div class="sch" contenteditable="true">${s.headline||''}</div><div class="scb" contenteditable="true">${s.body||''}</div><div class="sln" contenteditable="true">&#8593; link in bio</div>${wm}`;
   else inner=`${cm}<div class="sbd" contenteditable="true">${s.headline||s.body||''}</div>${wm}`;
   el.innerHTML=inner;return el;
 }
@@ -372,8 +372,40 @@ window.addEventListener('DOMContentLoaded',()=>{
 
 let logoDataUrl = null;
 
+let savedRange = null;
+
+function saveSelection() {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange();
+}
+
+function restoreAndApply(cmd, val) {
+  if (!savedRange) return;
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(savedRange);
+  const range = sel.getRangeAt(0);
+  if (cmd === 'removeFormat') {
+    const text = document.createTextNode(range.toString());
+    range.deleteContents();
+    range.insertNode(text);
+    savedRange = null;
+    return;
+  }
+  const span = document.createElement('span');
+  if (cmd === 'bold') span.style.fontWeight = '600';
+  else if (cmd === 'italic') span.style.fontStyle = 'italic';
+  else if (cmd === 'underline') span.style.textDecoration = 'underline';
+  else if (cmd === 'foreColor') span.style.color = val;
+  try { range.surroundContents(span); }
+  catch(e) { const x = range.extractContents(); span.appendChild(x); range.insertNode(span); }
+  savedRange = null;
+}
+
 function fmt(cmd, val) {
-  document.execCommand(cmd, false, val || null);
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0 && !sel.isCollapsed) savedRange = sel.getRangeAt(0).cloneRange();
+  restoreAndApply(cmd, val);
 }
 
 
@@ -406,7 +438,7 @@ function updateLogosOnSlides() {
 }
 
 // Download all slides as PNGs
-async function dlAll() {
+async async function dlAll() {
   if (!slides.length) { alert('Generate a carousel first.'); return; }
   const sc = document.getElementById('carousel');
   if (!sc) return;
