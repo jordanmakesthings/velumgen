@@ -32,11 +32,14 @@ select option{background:#1e1e1e}
 .mb.off{background:var(--s2);color:var(--sg);font-weight:400}
 .gbtn{width:100%;background:var(--gd);color:var(--ch);border:none;border-radius:3px;padding:12px;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
 .gbtn:hover{opacity:.88}
-.ftbar{position:fixed;background:#1e1e1e;border:1px solid #333;border-radius:6px;padding:4px 6px;display:none;gap:4px;align-items:center;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.6)}
-.ftbar button{background:none;border:none;color:#c8c4bb;cursor:pointer;font-size:13px;padding:4px 7px;border-radius:3px;font-family:'DM Sans',sans-serif}
-.ftbar button:hover{background:#333;color:#F2EFE7}
-.ftbar .sep{width:1px;height:16px;background:#333}
-.ftbar input[type=color]{width:22px;height:22px;border:none;background:none;cursor:pointer;padding:0}
+.fbar{display:flex;align-items:center;gap:6px;padding:10px 16px;background:#161616;border-bottom:1px solid #222;flex-shrink:0}
+.fbar-label{font-size:9px;letter-spacing:.18em;color:#6F8A7E;text-transform:uppercase;margin-right:4px}
+.fbar button{background:none;border:1px solid #2a2a2a;border-radius:3px;color:#c8c4bb;cursor:pointer;font-size:12px;padding:5px 10px;font-family:'DM Sans',sans-serif;transition:all .15s}
+.fbar button:hover{border-color:#C9A84C;color:#F2EFE7}
+.fbar .fsep{width:1px;height:18px;background:#2a2a2a;margin:0 2px}
+.fbar .fcolor{width:26px;height:26px;border-radius:3px;border:1px solid #2a2a2a;cursor:pointer;padding:2px;background:#1e1e1e}
+.fbar .fcolor-swatch{width:20px;height:20px;border-radius:2px;cursor:pointer;border:none;outline:none}
+.fbar .hint-text{font-size:10px;color:#6F8A7E;font-style:italic;margin-left:4px}
 .dload-btn{background:transparent;border:1px solid #222;border-radius:3px;color:#6F8A7E;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:400;letter-spacing:.15em;text-transform:uppercase;padding:8px 14px;cursor:pointer;transition:border-color .2s,color .2s;width:100%}
 .dload-btn:hover{border-color:#C9A84C;color:#C9A84C}
 .logo-preview{width:100%;height:48px;border:1px dashed #333;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6F8A7E;font-size:11px;letter-spacing:.1em;position:relative;overflow:hidden}
@@ -176,20 +179,27 @@ select option{background:#1e1e1e}
 </div>
 <button class="dload-btn" onclick="dlAll()">↓ Download all slides</button>
 </aside>
+<div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+<div class="fbar" id="fbar">
+  <span class="fbar-label">Format</span>
+  <button onclick="fmt('bold')"><b>B</b></button>
+  <button onclick="fmt('italic')"><i>I</i></button>
+  <button onclick="fmt('underline')"><u>U</u></button>
+  <div class="fsep"></div>
+  <div class="fcolor" title="Custom colour"><input type="color" class="fcolor-swatch" id="ftcolor" value="#ffffff" onchange="fmt('foreColor',this.value)"></div>
+  <button onclick="fmt('foreColor','#C9A84C')" style="color:#C9A84C;border-color:#C9A84C;font-size:10px;letter-spacing:.05em">Gold</button>
+  <button onclick="fmt('foreColor','#F2EFE7')" style="font-size:10px;letter-spacing:.05em">Cream</button>
+  <button onclick="fmt('foreColor','#6F8A7E')" style="color:#6F8A7E;font-size:10px;letter-spacing:.05em">Sage</button>
+  <div class="fsep"></div>
+  <button onclick="fmt('removeFormat')" style="font-size:10px">Clear</button>
+  <span class="hint-text">Select text on a slide first</span>
+</div>
 <main class="canvas" id="canvas">
   <div class="es" id="empty">
     <div class="eg">O</div>
     <div class="et">Enter a topic or paste your script, then hit Generate.</div>
   </div>
 </main>
-
-<div class="ftbar" id="ftbar">
-  <button onclick="fmt('bold')" title="Bold"><b>B</b></button>
-  <button onclick="fmt('italic')" title="Italic"><i>I</i></button>
-  <button onclick="fmt('underline')" title="Underline"><u>U</u></button>
-  <div class="sep"></div>
-  <input type="color" id="ftcolor" value="#C9A84C" onchange="fmt('foreColor',this.value)" title="Text color">
-  <button onclick="fmt('removeFormat')" title="Clear">✕</button>
 </div>
 </div>
 <script>
@@ -360,37 +370,12 @@ window.addEventListener('DOMContentLoaded',()=>{
 });
 
 
-// Formatting toolbar
 let logoDataUrl = null;
 
-document.addEventListener('selectionchange', () => {
-  const sel = window.getSelection();
-  const tb = document.getElementById('ftbar');
-  if (!sel || sel.isCollapsed || !sel.toString()) { tb.style.display='none'; return; }
-  const range = sel.getRangeAt(0);
-  const rect = range.getBoundingClientRect();
-  tb.style.display = 'flex';
-  tb.style.left = Math.max(8, rect.left + rect.width/2 - 80) + 'px';
-  tb.style.top = (rect.top - 48 + window.scrollY) + 'px';
-});
-
 function fmt(cmd, val) {
-  const sel = window.getSelection();
-  if (!sel || sel.isCollapsed) return;
-  const range = sel.getRangeAt(0);
-  const span = document.createElement('span');
-  if (cmd === 'bold') span.style.fontWeight = '600';
-  else if (cmd === 'italic') span.style.fontStyle = 'italic';
-  else if (cmd === 'underline') span.style.textDecoration = 'underline';
-  else if (cmd === 'foreColor') span.style.color = val;
-  else if (cmd === 'removeFormat') {
-    const text = document.createTextNode(range.toString());
-    range.deleteContents();
-    range.insertNode(text);
-    return;
-  }
-  range.surroundContents(span);
+  document.execCommand(cmd, false, val || null);
 }
+
 
 // Logo
 function loadLogo(input) {
