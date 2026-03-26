@@ -375,8 +375,21 @@ document.addEventListener('selectionchange', () => {
 });
 
 function fmt(cmd, val) {
-  document.execCommand(cmd, false, val || null);
-  document.getElementById('ftbar').style.display = 'none';
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return;
+  const range = sel.getRangeAt(0);
+  const span = document.createElement('span');
+  if (cmd === 'bold') span.style.fontWeight = '600';
+  else if (cmd === 'italic') span.style.fontStyle = 'italic';
+  else if (cmd === 'underline') span.style.textDecoration = 'underline';
+  else if (cmd === 'foreColor') span.style.color = val;
+  else if (cmd === 'removeFormat') {
+    const text = document.createTextNode(range.toString());
+    range.deleteContents();
+    range.insertNode(text);
+    return;
+  }
+  range.surroundContents(span);
 }
 
 // Logo
