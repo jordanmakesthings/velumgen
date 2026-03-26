@@ -181,7 +181,7 @@ function st(txt,active=false){
 }
 
 async function api(sys,usr){
-  const key=document.getElementById('akey').value.trim();
+  const key=document.getElementById('akey').value.trim();if(key)localStorage.setItem('vk',key);
   const r=await fetch(AAPI,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sys,messages:[{role:'user',content:usr}]})});
   if(!r.ok)throw new Error('API error '+r.status);
   const d=await r.json();return d.content[0].text;
@@ -200,7 +200,7 @@ const SCH1=`Respond with ONLY a valid JSON object for one slide. No preamble, no
 Types: hook={eyebrow,headline,subtext}, why={body,graphic:"wave"}, exercise={num,name,subtitle,graphic:"box"|"wave478"|"circle"|"wave"}, concept={eyebrow,headline,body}, cta={headline,body,nudge:"link in bio"}`;
 
 async function go(){
-  const key=document.getElementById('akey').value.trim();
+  const key=document.getElementById('akey').value.trim();if(key)localStorage.setItem('vk',key);
   if(!key){st('Paste your API key first.');return;}
   const btn=document.getElementById('gbtn');btn.disabled=true;
   try{
@@ -228,7 +228,7 @@ async function go(){
 }
 
 async function regen(idx){
-  const key=document.getElementById('akey').value.trim();
+  const key=document.getElementById('akey').value.trim();if(key)localStorage.setItem('vk',key);
   if(!key){st('Paste your API key first.');return;}
   const s=slides[idx];
   const topic=document.getElementById('topic').value.trim()||'the current topic';
@@ -322,6 +322,12 @@ function goTo(n){
 }
 
 function mv(dir){const n=cur+dir;if(n>=0&&n<slides.length)goTo(n);}
+
+// Save & restore API key
+window.addEventListener('DOMContentLoaded',()=>{
+  const k=localStorage.getItem('velum_key');
+  if(k)document.getElementById('akey').value=k;
+});
 
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'||e.target.isContentEditable)return;
