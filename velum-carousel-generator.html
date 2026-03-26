@@ -182,16 +182,16 @@ select option{background:#1e1e1e}
 <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
 <div class="fbar" id="fbar">
   <span class="fbar-label">Format</span>
-  <button onclick="fmt('bold')"><b>B</b></button>
-  <button onclick="fmt('italic')"><i>I</i></button>
-  <button onclick="fmt('underline')"><u>U</u></button>
+  <button onmousedown="event.preventDefault();fmt('bold')"><b>B</b></button>
+  <button onmousedown="event.preventDefault();fmt('italic')"><i>I</i></button>
+  <button onmousedown="event.preventDefault();fmt('underline')"><u>U</u></button>
   <div class="fsep"></div>
-  <div class="fcolor" title="Custom colour"><input type="color" class="fcolor-swatch" id="ftcolor" value="#ffffff" onmousedown="saveSelection()" onchange="restoreAndApply('foreColor',this.value)"></div>
-  <button onclick="fmt('foreColor','#C9A84C')" style="color:#C9A84C;border-color:#C9A84C;font-size:10px;letter-spacing:.05em">Gold</button>
-  <button onclick="fmt('foreColor','#F2EFE7')" style="font-size:10px;letter-spacing:.05em">Cream</button>
-  <button onclick="fmt('foreColor','#6F8A7E')" style="color:#6F8A7E;font-size:10px;letter-spacing:.05em">Sage</button>
+  <div class="fcolor" title="Custom colour"><input type="color" class="fcolor-swatch" id="ftcolor" value="#C9A84C" onmousedown="saveSelection()" onchange="restoreAndApply('foreColor',this.value)"></div>
+  <button onmousedown="event.preventDefault();fmt('foreColor','#C9A84C')" style="color:#C9A84C;border-color:#C9A84C;font-size:10px;letter-spacing:.05em">Gold</button>
+  <button onmousedown="event.preventDefault();fmt('foreColor','#F2EFE7')" style="font-size:10px;letter-spacing:.05em">Cream</button>
+  <button onmousedown="event.preventDefault();fmt('foreColor','#6F8A7E')" style="color:#6F8A7E;font-size:10px;letter-spacing:.05em">Sage</button>
   <div class="fsep"></div>
-  <button onclick="fmt('removeFormat')" style="font-size:10px">Clear</button>
+  <button onmousedown="event.preventDefault();fmt('removeFormat')" style="font-size:10px">Clear</button>
   <span class="hint-text">Select text on a slide first</span>
 </div>
 <main class="canvas" id="canvas">
@@ -493,7 +493,9 @@ function restoreAndApply(cmd, val) {
 
 function fmt(cmd, val) {
   const sel = window.getSelection();
-  if (sel && sel.rangeCount > 0 && !sel.isCollapsed) savedRange = sel.getRangeAt(0).cloneRange();
+  if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+    savedRange = sel.getRangeAt(0).cloneRange();
+  }
   restoreAndApply(cmd, val);
 }
 
