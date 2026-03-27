@@ -62,6 +62,16 @@ select option{background:#1e1e1e}
 .fg label{margin-bottom:0}
 .rbtn{background:transparent;border:1px solid var(--br);border-radius:3px;color:var(--sg);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:400;letter-spacing:.15em;text-transform:uppercase;padding:7px 12px;cursor:pointer;transition:border-color .2s,color .2s;align-self:flex-start}
 .rbtn:hover{border-color:var(--gd);color:var(--gd)}
+.gfx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-height:260px;overflow-y:auto;padding:1px}
+.gfx-grid::-webkit-scrollbar{width:3px}
+.gfx-grid::-webkit-scrollbar-thumb{background:var(--br);border-radius:2px}
+.gfx-thumb{background:var(--forest);border:1px solid var(--br);border-radius:4px;padding:5px 4px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:border-color .15s;overflow:hidden}
+.gfx-thumb:hover{border-color:var(--sg)}
+.gfx-thumb.sel{border-color:var(--gd)}
+.gfx-thumb svg{width:100%!important;height:52px;display:block;pointer-events:none}
+.gfx-thumb .bfg{width:100%;height:52px;overflow:hidden;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.gfx-thumb .bfg svg{height:40px;pointer-events:none}
+.gfx-lbl{font-size:7.5px;color:var(--sg);text-align:center;letter-spacing:.04em;line-height:1.3;pointer-events:none}
 .sbar{padding:12px 20px;border-top:1px solid var(--br);font-size:11px;color:var(--sg);min-height:42px;display:flex;align-items:center;gap:8px}
 .sdot{width:6px;height:6px;border-radius:50%;background:var(--sg);flex-shrink:0}
 .sdot.on{background:var(--gd);animation:pulse 1.2s ease-in-out infinite}
@@ -221,7 +231,7 @@ function st(txt,active=false){
 }
 
 async function api(sys,usr){
-  const key=document.getElementById('akey').value.trim();if(key)localStorage.setItem('vk',key);
+  const key=document.getElementById('akey').value.trim();if(key)localStorage.setItem('velum_key',key);
   const r=await fetch(AAPI,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sys,messages:[{role:'user',content:usr}]})});
   if(!r.ok)throw new Error('API error '+r.status);
   const d=await r.json();return d.content[0].text;
@@ -240,7 +250,7 @@ const SCH1=`Respond with ONLY a valid JSON object for one slide. No preamble, no
 Types: hook={eyebrow,headline,subtext}, why={body,graphic:"wave"}, exercise={num,name,subtitle,graphic:"box"|"wave478"|"circle"|"wave"}, concept={eyebrow,headline,body}, cta={headline,body,nudge:"link in bio"}`;
 
 async function go(){
-  const key=document.getElementById('akey').value.trim();if(key)localStorage.setItem('vk',key);
+  const key=document.getElementById('akey').value.trim();if(key)localStorage.setItem('velum_key',key);
   if(!key){st('Paste your API key first.');return;}
   const btn=document.getElementById('gbtn');btn.disabled=true;
   try{
@@ -268,7 +278,7 @@ async function go(){
 }
 
 async function regen(idx){
-  const key=document.getElementById('akey').value.trim();if(key)localStorage.setItem('vk',key);
+  const key=document.getElementById('akey').value.trim();if(key)localStorage.setItem('velum_key',key);
   if(!key){st('Paste your API key first.');return;}
   const s=slides[idx];
   const topic=document.getElementById('topic').value.trim()||'the current topic';
@@ -410,9 +420,9 @@ function renderEds(){
     const fields=(defs[s.type]||[]).map(([k,l])=>{
       const v=(s[k]||'').replace(/"/g,'&quot;');
       const long=k==='body';
-      return`<div class="fg"><label>${l}</label>${long?`<textarea rows="3" onchange="upd(${i},'${k}',this.value)">${s[k]||''}</textarea>`:`<input type="text" value="${v}" onchange="upd(${i},'${k}',this.value)">`}</div>`;
+      return`<div class="fg"><label>${l}</label>${long?`<textarea rows="3" oninput="upd(${i},'${k}',this.value)">${s[k]||''}</textarea>`:`<input type="text" value="${v}" oninput="upd(${i},'${k}',this.value)">`}</div>`;
     }).join('');
-    const gfxPicker = (s.type==='exercise'||s.type==='why'||s.type==='concept') ? `<div class="fg"><label>Graphic</label><select onchange="updGfx(${i},this.value)" style="width:100%">${GFX_OPTIONS.map(o=>`<option value="${o.v}" ${s.graphic===o.v?'selected':''}>${o.l}</option>`).join('')}</select></div>` : '';
+    const gfxPicker = (s.type==='exercise'||s.type==='why'||s.type==='concept') ? `<div class="fg"><label>Graphic</label><div class="gfx-grid">${GFX_OPTIONS.map(o=>`<div class="gfx-thumb${s.graphic===o.v?' sel':''}" onclick="updGfx(${i},'${o.v}',this)">${gfx(o.v)}<span class="gfx-lbl">${o.l.split(' — ')[1]||o.l}</span></div>`).join('')}</div></div>` : '';
     card.innerHTML=`<div class="sehdr" id="h${i}" onclick="tog(${i})"><span class="snum">Slide ${i+1}</span><span class="stlbl">${lbl[s.type]||s.type}</span><span class="chv" id="c${i}">v</span></div><div class="sebdy" id="b${i}">${fields}${gfxPicker}<button class="rbtn" onclick="regen(${i})">Regenerate</button></div>`;
     c.appendChild(card);
   });
@@ -424,8 +434,9 @@ function tog(i){
   if(!isO)goTo(i);
 }
 
-function updGfx(idx,val){
+function updGfx(idx,val,el){
   slides[idx].graphic=val;
+  if(el){el.closest('.gfx-grid').querySelectorAll('.gfx-thumb').forEach(t=>t.classList.remove('sel'));el.classList.add('sel');}
   const e=document.getElementById('sl'+idx);
   if(e){const n=bslide(slides[idx],idx);n.id='sl'+idx;if(e.classList.contains('active'))n.classList.add('active');e.replaceWith(n);}
 }
@@ -529,9 +540,9 @@ function updateLogosOnSlides() {
 }
 
 // Download all slides as PNGs
-async async function dlAll() {
+async function dlAll() {
   if (!slides.length) { alert('Generate a carousel first.'); return; }
-  const sc = document.getElementById('carousel');
+  const sc = document.querySelector('#canvas .sc');
   if (!sc) return;
   const allSlides = sc.querySelectorAll('.slide');
   
