@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Velum Carousel Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--forest:#0F2F26;--fl:#1a4a3a;--ch:#111111;--cr:#F2EFE7;--sg:#6F8A7E;--gd:#C9A84C;--mt:#c8c4bb;--dm:#9aaea3;--br:#222;--sf:#181818;--s2:#1e1e1e}
+html,body{height:100%;background:#0d0d0d;color:var(--cr);font-family:'DM Sans',sans-serif;font-weight:300}
+.app{display:grid;grid-template-columns:340px 1fr;grid-template-rows:56px 1fr;height:100vh;overflow:hidden}
+header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid var(--br);background:#0d0d0d}
+.logo{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:300;letter-spacing:.35em;color:var(--cr);opacity:.8}
+.logo span{color:var(--gd)}
+.htag{font-size:10px;font-weight:400;letter-spacing:.2em;color:var(--sg);text-transform:uppercase}
+.sidebar{border-right:1px solid var(--br);display:flex;flex-direction:column;overflow:hidden;background:var(--sf)}
+.si{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+.si::-webkit-scrollbar{width:4px}
+.si::-webkit-scrollbar-thumb{background:var(--br);border-radius:2px}
+label{display:block;font-size:10px;font-weight:400;letter-spacing:.2em;color:var(--sg);text-transform:uppercase;margin-bottom:7px}
+textarea,select,input{width:100%;background:var(--s2);border:1px solid var(--br);border-radius:4px;color:var(--cr);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;padding:10px 12px;outline:none;resize:none;transition:border-color .2s}
+textarea:focus,select:focus,input:focus{border-color:var(--gd)}
+textarea{line-height:1.6}
+select{cursor:pointer;appearance:none}
+select option{background:#1e1e1e}
+.sw{position:relative}
+.sw::after{content:'v';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--sg);font-size:11px;pointer-events:none}
+.mt{display:flex;border:1px solid var(--br);border-radius:4px;overflow:hidden}
+.mb{flex:1;padding:9px 0;font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;border:none;cursor:pointer;transition:all .2s}
+.mb.on{background:var(--gd);color:var(--ch);font-weight:500}
+.mb.off{background:var(--s2);color:var(--sg);font-weight:400}
+.gbtn{width:100%;background:var(--gd);color:var(--ch);border:none;border-radius:3px;padding:12px;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
+.gbtn:hover{opacity:.88}
+.fbar{display:flex;align-items:center;gap:6px;padding:10px 16px;background:#161616;border-bottom:1px solid #222;flex-shrink:0}
+.fbar-label{font-size:9px;letter-spacing:.18em;color:#6F8A7E;text-transform:uppercase;margin-right:4px}
+.fbar button{background:none;border:1px solid #2a2a2a;border-radius:3px;color:#c8c4bb;cursor:pointer;font-size:12px;padding:5px 10px;font-family:'DM Sans',sans-serif;transition:all .15s}
+.fbar button:hover{border-color:#C9A84C;color:#F2EFE7}
+.fbar .fsep{width:1px;height:18px;background:#2a2a2a;margin:0 2px}
+.fbar .fcolor{width:26px;height:26px;border-radius:3px;border:1px solid #2a2a2a;cursor:pointer;padding:2px;background:#1e1e1e}
+.fbar .fcolor-swatch{width:20px;height:20px;border-radius:2px;cursor:pointer;border:none;outline:none}
+.fbar .hint-text{font-size:10px;color:#6F8A7E;font-style:italic;margin-left:4px}
+.dload-btn{background:transparent;border:1px solid #222;border-radius:3px;color:#6F8A7E;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:400;letter-spacing:.15em;text-transform:uppercase;padding:8px 14px;cursor:pointer;transition:border-color .2s,color .2s;width:100%}
+.dload-btn:hover{border-color:#C9A84C;color:#C9A84C}
+.logo-preview{width:100%;height:48px;border:1px dashed #333;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6F8A7E;font-size:11px;letter-spacing:.1em;position:relative;overflow:hidden}
+.logo-preview img{max-height:36px;max-width:140px;object-fit:contain}
+
+.gbtn:disabled{opacity:.35;cursor:default}
+.div{border:none;border-top:1px solid var(--br)}
+.hint{font-size:10px;color:var(--sg);margin-top:7px;line-height:1.6;opacity:.8}
+.slist{display:flex;flex-direction:column;gap:10px}
+.secard{background:var(--s2);border:1px solid var(--br);border-radius:6px;overflow:hidden}
+.sehdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none;border-bottom:1px solid transparent;transition:border-color .2s}
+.sehdr:hover,.sehdr.open{border-bottom-color:var(--br)}
+.snum{font-size:10px;font-weight:400;letter-spacing:.15em;color:var(--gd);text-transform:uppercase}
+.stlbl{font-size:11px;color:var(--dm)}
+.chv{font-size:10px;color:var(--sg);transition:transform .2s}
+.chv.open{transform:rotate(180deg)}
+.sebdy{display:none;padding:14px;flex-direction:column;gap:10px}
+.sebdy.open{display:flex}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{margin-bottom:0}
+.rbtn{background:transparent;border:1px solid var(--br);border-radius:3px;color:var(--sg);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:400;letter-spacing:.15em;text-transform:uppercase;padding:7px 12px;cursor:pointer;transition:border-color .2s,color .2s;align-self:flex-start}
+.rbtn:hover{border-color:var(--gd);color:var(--gd)}
+.gfx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-height:260px;overflow-y:auto;padding:1px}
+.gfx-grid::-webkit-scrollbar{width:3px}
+.gfx-grid::-webkit-scrollbar-thumb{background:var(--br);border-radius:2px}
+.gfx-thumb{background:var(--forest);border:1px solid var(--br);border-radius:4px;padding:5px 4px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:border-color .15s;overflow:hidden}
+.gfx-thumb:hover{border-color:var(--sg)}
+.gfx-thumb.sel{border-color:var(--gd)}
+.gfx-thumb svg{width:100%!important;height:52px;display:block;pointer-events:none}
+.gfx-thumb .bfg{width:100%;height:52px;overflow:hidden;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.gfx-thumb .bfg svg{height:40px;pointer-events:none}
+.gfx-lbl{font-size:7.5px;color:var(--sg);text-align:center;letter-spacing:.04em;line-height:1.3;pointer-events:none}
+.sbar{padding:12px 20px;border-top:1px solid var(--br);font-size:11px;color:var(--sg);min-height:42px;display:flex;align-items:center;gap:8px}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--sg);flex-shrink:0}
+.sdot.on{background:var(--gd);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.canvas{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;overflow:auto;padding:40px;background:#0d0d0d}
+.sc{position:relative;width:480px;height:480px;flex-shrink:0;border-radius:2px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.05),0 24px 80px rgba(0,0,0,.7)}
+.slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;align-items:center;padding:44px;background:var(--ch)}
+.slide.active{display:flex}
+.cm{position:absolute;top:18px;right:20px;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:300;color:var(--sg);letter-spacing:.08em;opacity:.6}
+.wm{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-family:'Cormorant Garamond',serif;font-size:10px;font-weight:300;letter-spacing:.32em;color:var(--sg);opacity:.5;white-space:nowrap}
+.sey{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:400;letter-spacing:.25em;text-transform:uppercase;color:var(--gd);margin-bottom:18px;position:relative;text-align:center}
+.shl{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;line-height:1.15;color:var(--cr);text-align:center;position:relative;max-width:350px}
+.shl em{font-style:italic;color:var(--gd)}
+.srl{width:28px;height:1px;background:var(--gd);margin:22px auto 0;opacity:.6;position:relative}
+.sst{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:300;letter-spacing:.12em;color:var(--sg);text-align:center;margin-top:12px;position:relative}
+.sbd{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;line-height:1.8;color:var(--mt);text-align:center;max-width:340px;position:relative}
+.set{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:400;letter-spacing:.25em;color:var(--gd);text-transform:uppercase;margin-bottom:6px;position:relative}
+.sen{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--cr);margin-bottom:4px;position:relative}
+.ses{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:300;letter-spacing:.1em;color:var(--sg);margin-bottom:22px;position:relative}
+.sch{font-family:'Cormorant Garamond',serif;font-size:29px;font-weight:300;font-style:italic;line-height:1.3;color:var(--cr);text-align:center;max-width:310px;margin-bottom:18px;position:relative}
+.scb{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:300;line-height:1.75;color:var(--dm);text-align:center;max-width:290px;margin-bottom:26px;position:relative}
+.sln{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:400;letter-spacing:.18em;color:var(--gd);text-transform:uppercase;position:relative}
+.snav{display:flex;align-items:center;gap:14px}
+.nb{width:34px;height:34px;border-radius:50%;border:1px solid var(--br);background:var(--sf);color:var(--cr);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .2s}
+.nb:hover{border-color:var(--gd)}
+.nb:disabled{opacity:.2;cursor:default}
+.dots{display:flex;gap:5px;align-items:center}
+.dot{width:5px;height:5px;border-radius:50%;background:#333;cursor:pointer;transition:background .2s,width .2s}
+.dot.active{background:var(--gd);width:14px;border-radius:3px}
+.sct{font-size:11px;color:var(--sg);letter-spacing:.1em;min-width:36px;text-align:center}
+.es{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.eg{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:var(--fl);line-height:1}
+.et{font-size:12px;color:var(--sg);letter-spacing:.05em;line-height:1.7;max-width:260px}
+.bgr{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 60%,#1a4a3a 0%,#111111 70%)}
+.bgl{position:absolute;inset:0;background:linear-gradient(155deg,#0F2F26 0%,#111111 55%)}
+.bfg{display:flex;gap:24px;align-items:flex-end;position:relative}
+.bfc{display:flex;flex-direction:column;align-items:center;gap:8px}
+.bfl{font-family:'DM Sans',sans-serif;font-size:9px;font-weight:400;letter-spacing:.15em}
+.bfl.s{color:#c97c5c}
+.bfl.c{color:var(--sg)}
+.dv{width:1px;height:44px;background:#2a2a2a;align-self:center}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">V<span>E</span>LUM</div>
+  <div class="htag">Carousel Generator</div>
+</header>
+<aside class="sidebar">
+  <div class="si">
+    <div>
+      <label>Anthropic API key</label>
+      <input type="password" id="akey" placeholder="sk-ant-..." autocomplete="off">
+      <div class="hint">Stays in memory only.</div>
+    </div>
+    <hr class="div">
+    <div class="mt">
+      <button class="mb on" id="mg" onclick="setMode('gen')">Generate</button>
+      <button class="mb off" id="ms" onclick="setMode('script')">My Script</button>
+    </div>
+    <div id="gf">
+      <div style="margin-bottom:14px">
+        <label>Topic</label>
+        <textarea id="topic" placeholder="e.g. 3 signs your nervous system is dysregulated" rows="3"></textarea>
+      </div>
+      <div style="margin-bottom:14px">
+        <label>Angle</label>
+        <div class="sw">
+          <select id="angle">
+            <option value="educational">Educational</option>
+            <option value="howto">How-to</option>
+            <option value="myth">Myth-busting</option>
+            <option value="signs">Signs / symptoms</option>
+            <option value="benefits">Benefits</option>
+            <option value="story">Story-led</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label>Slides</label>
+        <div class="sw">
+          <select id="scount">
+            <option value="4">4 slides</option>
+            <option value="5">5 slides</option>
+            <option value="6" selected>6 slides</option>
+            <option value="7">7 slides</option>
+            <option value="8">8 slides</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="sf" style="display:none">
+      <label>Paste your full script</label>
+      <textarea id="script" placeholder="Paste your slide-by-slide brief here. Claude will use your exact words and technique names." rows="12"></textarea>
+      <div class="hint">Your words, your structure -- formatted into Velum slides.</div>
+    </div>
+    <button class="gbtn" id="gbtn" onclick="go()">Generate Carousel</button>
+    <hr class="div">
+    <div id="editors" class="slist" style="display:none"></div>
+  </div>
+  <div class="sbar">
+    <div class="sdot" id="sdot"></div>
+    <span id="stxt">Ready -- enter a topic or paste your script</span>
+  </div>
+
+<hr class="div">
+<div>
+  <label>Logo</label>
+  <div class="logo-preview" id="logo-preview" onclick="document.getElementById('logo-file').click()">
+    <span id="logo-hint">+ Upload logo</span>
+    <img id="logo-img" style="display:none">
+  </div>
+  <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="loadLogo(this)">
+</div>
+<button class="dload-btn" onclick="dlAll()">↓ Download all slides</button>
+</aside>
+<div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+<div class="fbar" id="fbar">
+  <span class="fbar-label">Format</span>
+  <button onmousedown="event.preventDefault();fmt('bold')"><b>B</b></button>
+  <button onmousedown="event.preventDefault();fmt('italic')"><i>I</i></button>
+  <button onmousedown="event.preventDefault();fmt('underline')"><u>U</u></button>
+  <div class="fsep"></div>
+  <div class="fcolor" title="Custom colour"><input type="color" class="fcolor-swatch" id="ftcolor" value="#C9A84C" onmousedown="saveSelection()" onchange="restoreAndApply('foreColor',this.value)"></div>
+  <button onmousedown="event.preventDefault();fmt('foreColor','#C9A84C')" style="color:#C9A84C;border-color:#C9A84C;font-size:10px;letter-spacing:.05em">Gold</button>
+  <button onmousedown="event.preventDefault();fmt('foreColor','#F2EFE7')" style="font-size:10px;letter-spacing:.05em">Cream</button>
+  <button onmousedown="event.preventDefault();fmt('foreColor','#6F8A7E')" style="color:#6F8A7E;font-size:10px;letter-spacing:.05em">Sage</button>
+  <div class="fsep"></div>
+  <button onmousedown="event.preventDefault();fmt('fontSize','10px')" style="font-size:9px;letter-spacing:.05em">S</button>
+  <button onmousedown="event.preventDefault();fmt('fontSize','13px')" style="font-size:10px;letter-spacing:.05em">M</button>
+  <button onmousedown="event.preventDefault();fmt('fontSize','17px')" style="font-size:11px;letter-spacing:.05em">L</button>
+  <button onmousedown="event.preventDefault();fmt('fontSize','22px')" style="font-size:12px;letter-spacing:.05em">XL</button>
+  <div class="fsep"></div>
+  <button onmousedown="event.preventDefault();fmt('removeFormat')" style="font-size:10px">Clear</button>
+  <span class="hint-text">Select text on a slide first</span>
+</div>
+<main class="canvas" id="canvas">
+  <div class="es" id="empty">
+    <div class="eg">O</div>
+    <div class="et">Enter a topic or paste your script, then hit Generate.</div>
+  </div>
+</main>
+</div>
+</div>
+<script>
+const AAPI='https://api.anthropic.com/v1/messages';
+let slides=[],cur=0,mode='gen';
+
+function setMode(m){
+  mode=m;
+  document.getElementById('gf').style.display=m==='gen'?'block':'none';
+  document.getElementById('sf').style.display=m==='script'?'block':'none';
+  document.getElementById('mg').className='mb '+(m==='gen'?'on':'off');
+  document.getElementById('ms').className='mb '+(m==='script'?'on':'off');
+  document.getElementById('gbtn').textContent=m==='script'?'Format My Script':'Generate Carousel';
+}
+
+function st(txt,active=false){
+  document.getElementById('stxt').textContent=txt;
+  document.getElementById('sdot').className='sdot'+(active?' on':'');
+}
+
+async function api(sys,usr){
+  const key=document.getElementById('akey').value.trim();if(key)localStorage.setItem('velum_key',key);
+  const r=await fetch(AAPI,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sys,messages:[{role:'user',content:usr}]})});
+  if(!r.ok)throw new Error('API error '+r.status);
+  const d=await r.json();return d.content[0].text;
+}
+
+const BRAND=`You write Instagram carousel copy for Velum, a wellness app for nervous system regulation, breathwork, meditation, EFT tapping, somatic practices, and self-hypnosis. Voice: quiet, introspective, slightly philosophical. Serious and effective. No fluff, no generic warmth, no motivational cliches.`;
+const SCH=`Respond with ONLY a valid JSON array. No preamble, no backticks.
+Slide types:
+- "hook": {eyebrow, headline, subtext}
+- "why": {body, graphic:"wave"}
+- "exercise": {num, name, subtitle, graphic:"box"|"wave478"|"circle"|"wave"}
+- "concept": {eyebrow, headline, body}
+- "cta": {headline, body, nudge:"link in bio"}
+Rules: first=hook, last=cta. Short copy (480x480 slides). App has breathwork, guided meditation, EFT tapping, somatic practices, self-hypnosis only.`;
+const SCH1=`Respond with ONLY a valid JSON object for one slide. No preamble, no backticks.
+Types: hook={eyebrow,headline,subtext}, why={body,graphic:"wave"}, exercise={num,name,subtitle,graphic:"box"|"wave478"|"circle"|"wave"}, concept={eyebrow,headline,body}, cta={headline,body,nudge:"link in bio"}`;
+
+async function go(){
+  const key=document.getElementById('akey').value.trim();if(key)localStorage.setItem('velum_key',key);
+  if(!key){st('Paste your API key first.');return;}
+  const btn=document.getElementById('gbtn');btn.disabled=true;
+  try{
+    let raw;
+    if(mode==='script'){
+      const sc=document.getElementById('script').value.trim();
+      if(!sc){st('Paste your script first.');btn.disabled=false;return;}
+      st('Formatting your script...',true);
+      raw=await api(BRAND+'\n\nTake the user\'s raw script and map it FAITHFULLY into the carousel JSON format. Use their EXACT words, technique names, and instructions verbatim. Do not rewrite or improve -- just format.\n\n'+SCH,'Map this script into the carousel JSON using my exact words:\n\n'+sc);
+    }else{
+      const topic=document.getElementById('topic').value.trim();
+      if(!topic){st('Enter a topic first.');btn.disabled=false;return;}
+      const count=parseInt(document.getElementById('scount').value);
+      const ang=document.getElementById('angle').value;
+      const amap={educational:'teach the concept clearly',howto:'step-by-step guide',myth:'myth-busting',signs:'signs and symptoms awareness',benefits:'why it matters',story:'story arc from struggle to insight'};
+      st('Generating carousel...',true);
+      raw=await api(BRAND+'\n\n'+SCH,`Topic: "${topic}"\nAngle: ${amap[ang]}\nSlides: ${count}\n\nGenerate ${count} slides.`);
+    }
+    const clean=raw.replace(/```json|```/g,'').trim();
+    slides=JSON.parse(clean);cur=0;
+    render();renderEds();
+    st(`${slides.length} slides ready -- click any text to edit`,false);
+  }catch(e){st('Error: '+e.message,false);console.error(e);}
+  btn.disabled=false;
+}
+
+async function regen(idx){
+  const key=document.getElementById('akey').value.trim();if(key)localStorage.setItem('velum_key',key);
+  if(!key){st('Paste your API key first.');return;}
+  const s=slides[idx];
+  const topic=document.getElementById('topic').value.trim()||'the current topic';
+  st('Regenerating slide '+(idx+1)+'...',true);
+  try{
+    const raw=await api(BRAND+'\n\n'+SCH1,`Regenerate this slide (type:"${s.type}") for topic:"${topic}". Fresh take.`);
+    const ns=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    ns.type=s.type;slides[idx]=ns;
+    render();renderEds();goTo(idx);
+    st('Slide '+(idx+1)+' regenerated',false);
+  }catch(e){st('Regen error: '+e.message,false);}
+}
+
+function render(){
+  const cv=document.getElementById('canvas');
+  document.getElementById('empty')?.remove();
+  cv.querySelectorAll('.sc,.snav,.sct').forEach(e=>e.remove());
+  const c=document.createElement('div');c.className='sc';
+  slides.forEach((s,i)=>{const el=bslide(s,i);if(i===cur)el.classList.add('active');c.appendChild(el);});
+  cv.appendChild(c);
+  const nav=document.createElement('div');nav.className='snav';
+  nav.innerHTML=`<button class="nb" id="pb" onclick="mv(-1)" ${cur===0?'disabled':''}>&#8592;</button><div class="dots" id="dots"></div><button class="nb" id="nb2" onclick="mv(1)" ${cur===slides.length-1?'disabled':''}>&#8594;</button>`;
+  cv.appendChild(nav);
+  const ct=document.createElement('div');ct.className='sct';ct.id='sct';ct.textContent=`${cur+1} of ${slides.length}`;
+  cv.appendChild(ct);
+  bdots();
+}
+
+function bslide(s,i){
+  const el=document.createElement('div');el.className='slide';el.id='sl'+i;
+  const cm=`<div class="cm">${String(i+1).padStart(2,'0')} / ${String(slides.length).padStart(2,'0')}</div>`;
+  const wm=`<div class="wm">V E L U M</div>`;
+  const t=s.type;let inner='';
+  if(t==='hook')inner=`<div class="bgr"></div>${cm}<div class="sey" contenteditable="true">${s.eyebrow||'breathwork'}</div><div class="shl" contenteditable="true">${s.headline||''}</div><div class="srl"></div><div class="sst" contenteditable="true">${s.subtext||''}</div>${wm}`;
+  else if(t==='why')inner=`${cm}<div class="sbd" contenteditable="true" style="margin-bottom:28px">${s.body||''}</div>${gfx(s.graphic||'wave')}${wm}`;
+  else if(t==='exercise')inner=`${cm}<div class="set" contenteditable="true">Exercise ${s.num||String(i).padStart(2,'0')}</div><div class="sen" contenteditable="true">${s.name||''}</div><div class="ses" contenteditable="true">${s.subtitle||''}</div>${gfx(s.graphic)}${wm}`;
+  else if(t==='concept')inner=`${cm}<div class="sey" contenteditable="true">${s.eyebrow||''}</div><div class="shl" style="font-size:26px" contenteditable="true">${s.headline||''}</div><div class="srl"></div><div class="sbd" style="margin-top:16px;font-size:12.5px" contenteditable="true">${s.body||''}</div>${wm}`;
+  else if(t==='cta')inner=`<div class="bgl"></div>${cm}<div class="sey" contenteditable="true">go deeper</div><div class="sch" contenteditable="true">${s.headline||''}</div><div class="scb" contenteditable="true">${s.body||''}</div><div class="sln" contenteditable="true">&#8593; link in bio</div>${wm}`;
+  else inner=`${cm}<div class="sbd" contenteditable="true">${s.headline||s.body||''}</div>${wm}`;
+  el.innerHTML=inner;return el;
+}
+
+function gfx(t){
+  const G='#C9A84C',S='#6F8A7E',CR='#F2EFE7',FL='#1a4a3a',DM='DM Sans,sans-serif',CG='Cormorant Garamond,serif';
+
+  // ── BREATHWORK ──
+  if(t==='wave')return`<div class="bfg"><div class="bfc"><div class="bfl s">STRESS BREATH</div><svg width="110" height="44" viewBox="0 0 110 44"><polyline points="0,22 7,9 13,33 19,11 25,35 30,7 36,31 41,13 47,37 53,9 59,29 64,14 70,35 75,11 81,33 87,13 93,35 99,16 105,31 110,20" fill="none" stroke="#c97c5c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="dv"></div><div class="bfc"><div class="bfl c">CALM BREATH</div><svg width="110" height="44" viewBox="0 0 110 44"><path d="M0,28 C18,28 28,6 55,6 C82,6 92,28 110,28" fill="none" stroke="#6F8A7E" stroke-width="1.4" stroke-linecap="round"/></svg></div></div>`;
+
+  if(t==='box')return`<svg width="210" height="210" viewBox="0 0 210 210"><rect x="40" y="40" width="130" height="130" fill="none" stroke="${FL}" stroke-width="1.5" rx="2"/><circle cx="40" cy="40" r="2.5" fill="${G}" opacity=".8"/><circle cx="170" cy="40" r="2.5" fill="${G}" opacity=".8"/><circle cx="170" cy="170" r="2.5" fill="${G}" opacity=".8"/><circle cx="40" cy="170" r="2.5" fill="${G}" opacity=".8"/><text x="105" y="26" text-anchor="middle" font-family="${DM}" font-size="9.5" fill="${G}" letter-spacing=".12em">INHALE</text><text x="105" y="38" text-anchor="middle" font-family="${CG}" font-size="13" font-weight="300" fill="${CR}" opacity=".65">4 s</text><text x="196" y="101" text-anchor="middle" font-family="${DM}" font-size="9.5" fill="${G}" letter-spacing=".12em" transform="rotate(90 196 101)">HOLD</text><text x="203" y="108" text-anchor="middle" font-family="${CG}" font-size="13" font-weight="300" fill="${CR}" opacity=".65">4 s</text><text x="105" y="190" text-anchor="middle" font-family="${DM}" font-size="9.5" fill="${G}" letter-spacing=".12em">EXHALE</text><text x="105" y="202" text-anchor="middle" font-family="${CG}" font-size="13" font-weight="300" fill="${CR}" opacity=".65">4 s</text><text x="14" y="101" text-anchor="middle" font-family="${DM}" font-size="9.5" fill="${G}" letter-spacing=".12em" transform="rotate(-90 14 101)">HOLD</text><text x="7" y="108" text-anchor="middle" font-family="${CG}" font-size="13" font-weight="300" fill="${CR}" opacity=".65">4 s</text><defs><marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 2L8 5L2 8" fill="none" stroke="${G}" stroke-width="1.5" stroke-linecap="round"/></marker></defs><line x1="50" y1="40" x2="155" y2="40" stroke="${G}" stroke-width=".7" opacity=".35" marker-end="url(#ag)"/><line x1="170" y1="50" x2="170" y2="155" stroke="${G}" stroke-width=".7" opacity=".35" marker-end="url(#ag)"/><line x1="160" y1="170" x2="55" y2="170" stroke="${G}" stroke-width=".7" opacity=".35" marker-end="url(#ag)"/><line x1="40" y1="160" x2="40" y2="55" stroke="${G}" stroke-width=".7" opacity=".35" marker-end="url(#ag)"/><text x="105" y="102" text-anchor="middle" font-family="${DM}" font-size="8.5" font-weight="300" fill="${S}" letter-spacing=".1em">A SIMPLE RESET</text></svg>`;
+
+  if(t==='wave478')return`<svg width="310" height="124" viewBox="0 0 310 124"><path d="M8,108 C46,108 56,18 84,18 C104,18 108,18 124,18 C148,18 158,108 310,108" fill="none" stroke="${FL}" stroke-width="1"/><path d="M8,108 C46,108 56,18 84,18 C104,18 108,18 124,18 C148,18 158,108 310,108" fill="none" stroke="${S}" stroke-width="1.4" opacity=".8"/><path d="M8,108 C46,108 56,18 84,18 C104,18 108,18 124,18 C148,18 158,108 310,108 L310,116 L8,116 Z" fill="${FL}" opacity=".45"/><text x="40" y="70" text-anchor="middle" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".1em">INHALE</text><text x="40" y="83" text-anchor="middle" font-family="${CG}" font-size="12" font-weight="300" fill="${CR}" opacity=".7">4 s</text><text x="104" y="10" text-anchor="middle" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".1em">HOLD</text><text x="104" y="23" text-anchor="middle" font-family="${CG}" font-size="12" font-weight="300" fill="${CR}" opacity=".7">7 s</text><text x="224" y="70" text-anchor="middle" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".1em">EXHALE</text><text x="224" y="83" text-anchor="middle" font-family="${CG}" font-size="12" font-weight="300" fill="${CR}" opacity=".7">8 s</text><circle cx="84" cy="18" r="2.2" fill="${G}" opacity=".7"/><circle cx="124" cy="18" r="2.2" fill="${G}" opacity=".7"/></svg>`;
+
+  if(t==='circle')return`<svg width="230" height="172" viewBox="0 0 230 172"><circle cx="115" cy="86" r="66" fill="none" stroke="${FL}" stroke-width="1.4"/><circle cx="115" cy="86" r="38" fill="${FL}" stroke="${G}" stroke-width=".8" opacity=".7"/><text x="24" y="82" text-anchor="middle" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".1em">INHALE</text><text x="24" y="95" text-anchor="middle" font-family="${CG}" font-size="13" font-weight="300" fill="${CR}" opacity=".7">5 s</text><text x="206" y="82" text-anchor="middle" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".1em">EXHALE</text><text x="206" y="95" text-anchor="middle" font-family="${CG}" font-size="13" font-weight="300" fill="${CR}" opacity=".7">5 s</text><text x="115" y="83" text-anchor="middle" font-family="${DM}" font-size="8" fill="${S}" letter-spacing=".1em">EVEN</text><text x="115" y="94" text-anchor="middle" font-family="${DM}" font-size="8" fill="${S}" letter-spacing=".1em">RHYTHM</text><line x1="50" y1="86" x2="180" y2="86" stroke="${FL}" stroke-width=".7" stroke-dasharray="3 4"/></svg>`;
+
+  // ── NERVOUS SYSTEM ──
+  if(t==='window')return`<svg width="320" height="160" viewBox="0 0 320 160"><rect x="10" y="50" width="300" height="60" rx="4" fill="${FL}" opacity=".4" stroke="${S}" stroke-width=".8"/><rect x="10" y="10" width="300" height="40" rx="4" fill="none" stroke="#c97c5c" stroke-width=".8" stroke-dasharray="4 3"/><rect x="10" y="110" width="300" height="40" rx="4" fill="none" stroke="#c97c5c" stroke-width=".8" stroke-dasharray="4 3"/><text x="160" y="85" text-anchor="middle" font-family="${DM}" font-size="10" fill="${CR}" letter-spacing=".15em">WINDOW OF TOLERANCE</text><text x="160" y="35" text-anchor="middle" font-family="${DM}" font-size="9" fill="#c97c5c" letter-spacing=".1em">HYPERAROUSAL</text><text x="160" y="135" text-anchor="middle" font-family="${DM}" font-size="9" fill="#c97c5c" letter-spacing=".1em">HYPOAROUSAL</text><text x="160" y="50" text-anchor="middle" font-family="${CG}" font-size="11" fill="${S}" font-style="italic">fight · flight · panic</text><text x="160" y="148" text-anchor="middle" font-family="${CG}" font-size="11" fill="${S}" font-style="italic">freeze · shutdown · numb</text></svg>`;
+
+  if(t==='states')return`<svg width="300" height="200" viewBox="0 0 300 200"><defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 2L8 5L2 8" fill="none" stroke="${S}" stroke-width="1.5" stroke-linecap="round"/></marker></defs><rect x="90" y="10" width="120" height="44" rx="6" fill="${FL}" stroke="${G}" stroke-width=".8"/><text x="150" y="37" text-anchor="middle" font-family="${DM}" font-size="10" fill="${G}" letter-spacing=".12em">REGULATED</text><rect x="10" y="146" width="120" height="44" rx="6" fill="#1a1a1a" stroke="#c97c5c" stroke-width=".8"/><text x="70" y="173" text-anchor="middle" font-family="${DM}" font-size="10" fill="#c97c5c" letter-spacing=".1em">FIGHT / FLIGHT</text><rect x="170" y="146" width="120" height="44" rx="6" fill="#1a1a1a" stroke="#555" stroke-width=".8"/><text x="230" y="173" text-anchor="middle" font-family="${DM}" font-size="10" fill="#888" letter-spacing=".1em">FREEZE</text><line x1="110" y1="54" x2="70" y2="146" stroke="${S}" stroke-width=".8" stroke-dasharray="4 3" marker-end="url(#arr)"/><line x1="190" y1="54" x2="230" y2="146" stroke="${S}" stroke-width=".8" stroke-dasharray="4 3" marker-end="url(#arr)"/><text x="150" y="118" text-anchor="middle" font-family="${CG}" font-size="11" fill="${S}" font-style="italic">stress response</text></svg>`;
+
+  if(t==='ladder')return`<svg width="200" height="220" viewBox="0 0 200 220"><line x1="70" y1="10" x2="70" y2="210" stroke="${FL}" stroke-width="2"/><line x1="130" y1="10" x2="130" y2="210" stroke="${FL}" stroke-width="2"/><line x1="70" y1="30" x2="130" y2="30" stroke="${G}" stroke-width="1.5"/><line x1="70" y1="75" x2="130" y2="75" stroke="${G}" stroke-width="1.5"/><line x1="70" y1="120" x2="130" y2="120" stroke="${S}" stroke-width="1.5"/><line x1="70" y1="165" x2="130" y2="165" stroke="#c97c5c" stroke-width="1.5"/><text x="140" y="34" font-family="${DM}" font-size="10" fill="${G}" letter-spacing=".05em">Safe &amp; social</text><text x="140" y="79" font-family="${DM}" font-size="10" fill="${G}" letter-spacing=".05em">Mobilise</text><text x="140" y="124" font-family="${DM}" font-size="10" fill="${S}" letter-spacing=".05em">Fight / flight</text><text x="140" y="169" font-family="${DM}" font-size="10" fill="#c97c5c" letter-spacing=".05em">Freeze / collapse</text><text x="10" y="34" text-anchor="end" font-family="${CG}" font-size="9" fill="${S}">✦</text><text x="10" y="79" text-anchor="end" font-family="${CG}" font-size="9" fill="${S}">↑</text><text x="10" y="124" text-anchor="end" font-family="${CG}" font-size="9" fill="${S}">↓</text></svg>`;
+
+  // ── MEDITATION ──
+  if(t==='brainwaves')return`<svg width="320" height="180" viewBox="0 0 320 180"><text x="30" y="28" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".15em">BETA</text><path d="M60,20 C68,8 72,32 80,20 C88,8 92,32 100,20 C108,8 112,32 120,20 C128,8 132,32 140,20" fill="none" stroke="#c97c5c" stroke-width="1.2"/><text x="30" y="68" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".15em">ALPHA</text><path d="M60,62 C72,48 78,76 90,62 C102,48 108,76 120,62 C132,48 138,76 150,62" fill="none" stroke="${G}" stroke-width="1.2"/><text x="30" y="108" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".15em">THETA</text><path d="M60,102 C78,82 90,122 108,102 C126,82 138,122 156,102" fill="none" stroke="${S}" stroke-width="1.2"/><text x="30" y="148" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".15em">DELTA</text><path d="M60,142 C84,116 96,168 120,142 C144,116 156,168 180,142" fill="none" stroke="${FL}" stroke-width="1.2"/><text x="170" y="28" font-family="${CG}" font-size="10" fill="#c97c5c" font-style="italic">active mind</text><text x="170" y="68" font-family="${CG}" font-size="10" fill="${G}" font-style="italic">relaxed</text><text x="170" y="108" font-family="${CG}" font-size="10" fill="${S}" font-style="italic">meditative</text><text x="170" y="148" font-family="${CG}" font-size="10" fill="${S}" font-style="italic">deep sleep</text></svg>`;
+
+  if(t==='observer')return`<svg width="240" height="200" viewBox="0 0 240 200"><circle cx="120" cy="100" r="80" fill="none" stroke="${FL}" stroke-width="1.5"/><circle cx="120" cy="100" r="50" fill="none" stroke="${S}" stroke-width="1" stroke-dasharray="4 3"/><circle cx="120" cy="100" r="22" fill="${FL}" stroke="${G}" stroke-width=".8"/><text x="120" y="104" text-anchor="middle" font-family="${CG}" font-size="11" fill="${G}" font-style="italic">observer</text><text x="120" y="62" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".1em">THOUGHTS</text><text x="120" y="174" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".1em">EMOTIONS</text><text x="36" y="104" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".08em">BODY</text><text x="204" y="104" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".08em">SELF</text></svg>`;
+
+  if(t==='anchor')return`<svg width="200" height="220" viewBox="0 0 200 220"><line x1="100" y1="20" x2="100" y2="200" stroke="${FL}" stroke-width="1.5" stroke-dasharray="5 4"/><circle cx="100" cy="110" r="28" fill="${FL}" stroke="${G}" stroke-width=".8"/><text x="100" y="107" text-anchor="middle" font-family="${DM}" font-size="8" fill="${S}" letter-spacing=".1em">PRESENT</text><text x="100" y="119" text-anchor="middle" font-family="${DM}" font-size="8" fill="${S}" letter-spacing=".1em">MOMENT</text><text x="100" y="32" text-anchor="middle" font-family="${CG}" font-size="11" fill="#888" font-style="italic">past</text><text x="100" y="198" text-anchor="middle" font-family="${CG}" font-size="11" fill="#888" font-style="italic">future</text><line x1="80" y1="138" x2="80" y2="180" stroke="${G}" stroke-width="1.2"/><line x1="120" y1="138" x2="120" y2="180" stroke="${G}" stroke-width="1.2"/><path d="M72,180 Q80,200 88,180" fill="none" stroke="${G}" stroke-width="1.2"/><path d="M112,180 Q120,200 128,180" fill="none" stroke="${G}" stroke-width="1.2"/></svg>`;
+
+  // ── SUBCONSCIOUS MIND ──
+  if(t==='iceberg')return`<svg width="280" height="220" viewBox="0 0 280 220"><line x1="0" y1="90" x2="280" y2="90" stroke="${S}" stroke-width=".8" stroke-dasharray="6 4" opacity=".5"/><text x="240" y="86" font-family="${DM}" font-size="8" fill="${S}" letter-spacing=".1em">SURFACE</text><polygon points="140,10 180,88 100,88" fill="${FL}" stroke="${G}" stroke-width=".8"/><text x="140" y="58" text-anchor="middle" font-family="${DM}" font-size="8" fill="${G}" letter-spacing=".1em">CONSCIOUS</text><text x="140" y="70" text-anchor="middle" font-family="${CG}" font-size="9" fill="${S}" font-style="italic">~5%</text><polygon points="100,90 180,90 210,200 70,200" fill="${FL}" opacity=".7" stroke="${S}" stroke-width=".8"/><text x="140" y="145" text-anchor="middle" font-family="${DM}" font-size="9" fill="${CR}" letter-spacing=".12em">SUBCONSCIOUS</text><text x="140" y="160" text-anchor="middle" font-family="${CG}" font-size="10" fill="${S}" font-style="italic">~95%</text><text x="140" y="178" text-anchor="middle" font-family="${DM}" font-size="8" fill="${S}" letter-spacing=".08em">beliefs · memories · patterns</text></svg>`;
+
+  if(t==='habitloop')return`<svg width="280" height="200" viewBox="0 0 280 200"><defs><marker id="ha" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 2L8 5L2 8" fill="none" stroke="${S}" stroke-width="1.5" stroke-linecap="round"/></marker></defs><circle cx="140" cy="100" r="36" fill="none" stroke="${S}" stroke-width=".8" stroke-dasharray="4 3"/><text x="140" y="96" text-anchor="middle" font-family="${DM}" font-size="8.5" fill="${S}" letter-spacing=".1em">REWARD</text><text x="140" y="108" text-anchor="middle" font-family="${CG}" font-size="9" fill="${S}" font-style="italic">craving</text><rect x="6" y="16" width="90" height="38" rx="5" fill="${FL}" stroke="${G}" stroke-width=".8"/><text x="51" y="38" text-anchor="middle" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".1em">CUE</text><rect x="184" y="16" width="90" height="38" rx="5" fill="${FL}" stroke="${G}" stroke-width=".8"/><text x="229" y="38" text-anchor="middle" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".1em">ROUTINE</text><rect x="95" y="158" width="90" height="38" rx="5" fill="${FL}" stroke="${G}" stroke-width=".8"/><text x="140" y="181" text-anchor="middle" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".1em">REWARD</text><path d="M96,35 C130,35 130,70 140,66" fill="none" stroke="${S}" stroke-width=".9" marker-end="url(#ha)"/><path d="M229,54 C229,85 190,90 175,100" fill="none" stroke="${S}" stroke-width=".9" marker-end="url(#ha)"/><path d="M140,136 C140,155 140,158 140,158" fill="none" stroke="${S}" stroke-width=".9" marker-end="url(#ha)"/></svg>`;
+
+  if(t==='beliefs')return`<svg width="240" height="200" viewBox="0 0 240 200"><rect x="20" y="10" width="200" height="36" rx="5" fill="none" stroke="#555" stroke-width=".8"/><text x="120" y="32" text-anchor="middle" font-family="${DM}" font-size="9" fill="#888" letter-spacing=".1em">CONSCIOUS THOUGHTS</text><rect x="10" y="62" width="220" height="36" rx="5" fill="${FL}" opacity=".6" stroke="${S}" stroke-width=".8"/><text x="120" y="84" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".1em">EMOTIONS &amp; REACTIONS</text><rect x="0" y="114" width="240" height="36" rx="5" fill="${FL}" stroke="${G}" stroke-width=".8"/><text x="120" y="136" text-anchor="middle" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".1em">CORE BELIEFS</text><rect x="0" y="160" width="240" height="36" rx="5" fill="${FL}" opacity=".4" stroke="${S}" stroke-width=".5"/><text x="120" y="182" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".08em">IDENTITY</text></svg>`;
+
+  // ── ANXIETY ──
+  if(t==='spiral')return`<svg width="240" height="240" viewBox="0 0 240 240"><path d="M120,120 C120,110 130,110 130,120 C130,135 115,140 110,128 C104,112 116,96 132,98 C152,100 160,120 155,138 C148,162 126,170 106,162 C80,152 72,124 82,102 C94,74 126,66 152,78 C182,92 190,130 176,158" fill="none" stroke="${G}" stroke-width="1.2" opacity=".6"/><circle cx="120" cy="120" r="6" fill="${G}" opacity=".8"/><text x="120" y="218" text-anchor="middle" font-family="${CG}" font-size="12" fill="${S}" font-style="italic">the anxiety spiral</text></svg>`;
+
+  if(t==='threat')return`<svg width="300" height="160" viewBox="0 0 300 160"><defs><marker id="ta" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 2L8 5L2 8" fill="none" stroke="${S}" stroke-width="1.5" stroke-linecap="round"/></marker></defs><rect x="10" y="58" width="80" height="38" rx="5" fill="${FL}" stroke="#c97c5c" stroke-width=".8"/><text x="50" y="81" text-anchor="middle" font-family="${DM}" font-size="9" fill="#c97c5c" letter-spacing=".1em">TRIGGER</text><rect x="110" y="58" width="80" height="38" rx="5" fill="${FL}" stroke="${G}" stroke-width=".8"/><text x="150" y="78" text-anchor="middle" font-family="${DM}" font-size="8" fill="${G}" letter-spacing=".1em">THREAT</text><text x="150" y="90" text-anchor="middle" font-family="${DM}" font-size="8" fill="${G}" letter-spacing=".1em">RESPONSE</text><rect x="210" y="10" width="80" height="38" rx="5" fill="${FL}" stroke="${S}" stroke-width=".8"/><text x="250" y="33" text-anchor="middle" font-family="${DM}" font-size="8.5" fill="${S}" letter-spacing=".1em">FIGHT/FLIGHT</text><rect x="210" y="108" width="80" height="38" rx="5" fill="${FL}" stroke="${S}" stroke-width=".5"/><text x="250" y="131" text-anchor="middle" font-family="${DM}" font-size="8.5" fill="${S}" letter-spacing=".1em">FREEZE</text><line x1="90" y1="77" x2="110" y2="77" stroke="${S}" stroke-width=".9" marker-end="url(#ta)"/><line x1="190" y1="70" x2="210" y2="40" stroke="${S}" stroke-width=".9" marker-end="url(#ta)"/><line x1="190" y1="86" x2="210" y2="118" stroke="${S}" stroke-width=".9" marker-end="url(#ta)"/></svg>`;
+
+  if(t==='feedback')return`<svg width="280" height="180" viewBox="0 0 280 180"><defs><marker id="fa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 2L8 5L2 8" fill="none" stroke="${S}" stroke-width="1.5" stroke-linecap="round"/></marker></defs><rect x="90" y="10" width="100" height="36" rx="5" fill="${FL}" stroke="#c97c5c" stroke-width=".8"/><text x="140" y="32" text-anchor="middle" font-family="${DM}" font-size="9" fill="#c97c5c" letter-spacing=".1em">ANXIETY</text><rect x="10" y="140" width="100" height="36" rx="5" fill="${FL}" stroke="${S}" stroke-width=".8"/><text x="60" y="162" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".1em">AVOIDANCE</text><rect x="170" y="140" width="100" height="36" rx="5" fill="${FL}" stroke="${S}" stroke-width=".8"/><text x="220" y="162" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".08em">MORE ANXIETY</text><path d="M120,46 C80,80 60,110 60,140" fill="none" stroke="${S}" stroke-width=".9" marker-end="url(#fa)"/><path d="M110,140 C130,120 150,120 170,140" fill="none" stroke="${S}" stroke-width=".9" marker-end="url(#fa)"/><path d="M220,140 C230,100 200,60 190,46" fill="none" stroke="${S}" stroke-width=".9" marker-end="url(#fa)"/></svg>`;
+
+  // ── CALM ──
+  if(t==='coherence')return`<svg width="240" height="200" viewBox="0 0 240 200"><path d="M20,100 C40,60 60,140 80,100 C100,60 120,140 140,100 C160,60 180,140 200,100 C210,80 215,100 220,100" fill="none" stroke="${G}" stroke-width="1.5" opacity=".8"/><text x="120" y="170" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".15em">HEART COHERENCE</text><text x="120" y="185" text-anchor="middle" font-family="${CG}" font-size="11" fill="${S}" font-style="italic">rhythm in harmony</text></svg>`;
+
+  if(t==='stillness')return`<svg width="220" height="200" viewBox="0 0 220 200"><circle cx="110" cy="95" r="70" fill="none" stroke="${FL}" stroke-width="1"/><circle cx="110" cy="95" r="50" fill="none" stroke="${FL}" stroke-width=".8"/><circle cx="110" cy="95" r="30" fill="none" stroke="${S}" stroke-width=".8" opacity=".6"/><circle cx="110" cy="95" r="12" fill="${G}" opacity=".7"/><text x="110" y="185" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".15em">STILLNESS</text></svg>`;
+
+  if(t==='safety')return`<svg width="240" height="190" viewBox="0 0 240 190"><path d="M120,10 L200,40 L200,110 C200,150 160,175 120,185 C80,175 40,150 40,110 L40,40 Z" fill="${FL}" stroke="${G}" stroke-width=".8" opacity=".9"/><text x="120" y="90" text-anchor="middle" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".15em">YOU ARE</text><text x="120" y="108" text-anchor="middle" font-family="${CG}" font-size="18" fill="${CR}" font-weight="300">safe</text><text x="120" y="130" text-anchor="middle" font-family="${DM}" font-size="8" fill="${S}" letter-spacing=".1em">right now</text></svg>`;
+
+  // ── MANIFESTATION ──
+  if(t==='identity')return`<svg width="240" height="220" viewBox="0 0 240 220"><defs><marker id="ida" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 2L8 5L2 8" fill="none" stroke="${G}" stroke-width="1.5" stroke-linecap="round"/></marker></defs><rect x="60" y="170" width="120" height="36" rx="5" fill="#1a1a1a" stroke="#444" stroke-width=".8"/><text x="120" y="192" text-anchor="middle" font-family="${DM}" font-size="9" fill="#666" letter-spacing=".1em">OLD IDENTITY</text><rect x="60" y="110" width="120" height="36" rx="5" fill="${FL}" stroke="${S}" stroke-width=".8"/><text x="120" y="132" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".1em">NEW BELIEFS</text><rect x="60" y="50" width="120" height="36" rx="5" fill="${FL}" stroke="${G}" stroke-width=".8"/><text x="120" y="72" text-anchor="middle" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".1em">NEW ACTIONS</text><rect x="60" y="10" width="120" height="36" rx="5" fill="${FL}" stroke="${CR}" stroke-width=".8"/><text x="120" y="32" text-anchor="middle" font-family="${DM}" font-size="9" fill="${CR}" letter-spacing=".1em">NEW IDENTITY</text><line x1="120" y1="170" x2="120" y2="146" stroke="${G}" stroke-width=".9" marker-end="url(#ida)"/><line x1="120" y1="110" x2="120" y2="86" stroke="${G}" stroke-width=".9" marker-end="url(#ida)"/><line x1="120" y1="50" x2="120" y2="46" stroke="${G}" stroke-width=".9" marker-end="url(#ida)"/></svg>`;
+
+  if(t==='innerout')return`<svg width="260" height="160" viewBox="0 0 260 160"><circle cx="80" cy="80" r="60" fill="${FL}" stroke="${G}" stroke-width=".8" opacity=".8"/><circle cx="180" cy="80" r="60" fill="#1a1a1a" stroke="${S}" stroke-width=".8" opacity=".6"/><text x="80" y="76" text-anchor="middle" font-family="${DM}" font-size="9" fill="${G}" letter-spacing=".1em">INNER</text><text x="80" y="90" text-anchor="middle" font-family="${CG}" font-size="10" fill="${S}" font-style="italic">state · belief</text><text x="180" y="76" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".1em">OUTER</text><text x="180" y="90" text-anchor="middle" font-family="${CG}" font-size="10" fill="${S}" font-style="italic">reality · results</text><text x="130" y="148" text-anchor="middle" font-family="${DM}" font-size="8" fill="${S}" letter-spacing=".12em">AS WITHIN · SO WITHOUT</text></svg>`;
+
+  if(t==='frequency')return`<svg width="300" height="160" viewBox="0 0 300 160"><path d="M10,130 C30,130 40,80 60,80 C80,80 90,120 110,120 C130,120 140,60 160,60 C180,60 190,100 210,100 C230,100 240,30 260,30 C275,30 280,50 290,50" fill="none" stroke="${G}" stroke-width="1.4"/><text x="20" y="148" font-family="${DM}" font-size="8" fill="${S}" letter-spacing=".1em">FEAR</text><text x="80" y="148" font-family="${DM}" font-size="8" fill="${S}" letter-spacing=".1em">NEUTRAL</text><text x="150" y="148" font-family="${DM}" font-size="8" fill="${S}" letter-spacing=".1em">HOPE</text><text x="220" y="148" font-family="${DM}" font-size="8" fill="${G}" letter-spacing=".1em">LOVE</text><text x="150" y="18" text-anchor="middle" font-family="${DM}" font-size="9" fill="${S}" letter-spacing=".15em">EMOTIONAL FREQUENCY</text></svg>`;
+
+  return'';
+}
+
+// Map of graphic keys to display labels for the dropdown
+const GFX_OPTIONS = [
+  // Breathwork
+  {v:'wave',    l:'Breathwork — Stress vs Calm'},
+  {v:'box',     l:'Breathwork — Box Breathing'},
+  {v:'wave478', l:'Breathwork — 4-7-8'},
+  {v:'circle',  l:'Breathwork — Coherent Breath'},
+  // Nervous System
+  {v:'window',  l:'Nervous System — Window of Tolerance'},
+  {v:'states',  l:'Nervous System — Regulated States'},
+  {v:'ladder',  l:'Nervous System — Polyvagal Ladder'},
+  // Meditation
+  {v:'brainwaves', l:'Meditation — Brainwave States'},
+  {v:'observer',   l:'Meditation — Observer Self'},
+  {v:'anchor',     l:'Meditation — Present Moment'},
+  // Subconscious
+  {v:'iceberg',   l:'Subconscious — Iceberg'},
+  {v:'habitloop', l:'Subconscious — Habit Loop'},
+  {v:'beliefs',   l:'Subconscious — Belief Layers'},
+  // Anxiety
+  {v:'spiral',   l:'Anxiety — Spiral'},
+  {v:'threat',   l:'Anxiety — Threat Response'},
+  {v:'feedback', l:'Anxiety — Feedback Loop'},
+  // Calm
+  {v:'coherence', l:'Calm — Heart Coherence'},
+  {v:'stillness', l:'Calm — Stillness'},
+  {v:'safety',    l:'Calm — Safety Signal'},
+  // Manifestation
+  {v:'identity',  l:'Manifestation — Identity Shift'},
+  {v:'innerout',  l:'Manifestation — Inner / Outer'},
+  {v:'frequency', l:'Manifestation — Frequency Scale'},
+];
+
+function renderEds(){
+  const c=document.getElementById('editors');c.style.display='flex';c.innerHTML='';
+  const lbl={hook:'Hook',why:'Why it works',exercise:'Exercise',concept:'Concept',cta:'Call to action'};
+  const defs={hook:[['eyebrow','Eyebrow'],['headline','Headline'],['subtext','Subtext']],why:[['body','Body copy']],exercise:[['num','#'],['name','Name'],['subtitle','Subtitle']],concept:[['eyebrow','Eyebrow'],['headline','Headline'],['body','Body copy']],cta:[['headline','Headline'],['body','Body copy']]};
+  slides.forEach((s,i)=>{
+    const card=document.createElement('div');card.className='secard';
+    const fields=(defs[s.type]||[]).map(([k,l])=>{
+      const v=(s[k]||'').replace(/"/g,'&quot;');
+      const long=k==='body';
+      return`<div class="fg"><label>${l}</label>${long?`<textarea rows="3" oninput="upd(${i},'${k}',this.value)">${s[k]||''}</textarea>`:`<input type="text" value="${v}" oninput="upd(${i},'${k}',this.value)">`}</div>`;
+    }).join('');
+    const gfxPicker = (s.type==='exercise'||s.type==='why'||s.type==='concept') ? `<div class="fg"><label>Graphic</label><div class="gfx-grid" onclick="gfxClick(event,${i})">${GFX_OPTIONS.map(o=>`<div class="gfx-thumb${s.graphic===o.v?' sel':''}" data-gfx="${o.v}">${gfx(o.v)}<span class="gfx-lbl">${o.l.split(' — ')[1]||o.l}</span></div>`).join('')}</div></div>` : '';
+    card.innerHTML=`<div class="sehdr" id="h${i}" onclick="tog(${i})"><span class="snum">Slide ${i+1}</span><span class="stlbl">${lbl[s.type]||s.type}</span><span class="chv" id="c${i}">v</span></div><div class="sebdy" id="b${i}">${fields}${gfxPicker}<button class="rbtn" onclick="regen(${i})">Regenerate</button></div>`;
+    c.appendChild(card);
+  });
+}
+
+function tog(i){
+  const b=document.getElementById('b'+i);const isO=b.classList.contains('open');
+  b.classList.toggle('open',!isO);document.getElementById('h'+i).classList.toggle('open',!isO);document.getElementById('c'+i).classList.toggle('open',!isO);
+  if(!isO)goTo(i);
+}
+
+function gfxClick(event,idx){
+  const thumb=event.target.closest('.gfx-thumb');
+  if(!thumb)return;
+  const val=thumb.dataset.gfx;
+  if(!val)return;
+  thumb.closest('.gfx-grid').querySelectorAll('.gfx-thumb').forEach(t=>t.classList.remove('sel'));
+  thumb.classList.add('sel');
+  slides[idx].graphic=val;
+  const e=document.getElementById('sl'+idx);
+  if(e){const n=bslide(slides[idx],idx);n.id='sl'+idx;if(e.classList.contains('active'))n.classList.add('active');e.replaceWith(n);}
+}
+
+function updGfx(idx,val,el){
+  slides[idx].graphic=val;
+  if(el){el.closest('.gfx-grid').querySelectorAll('.gfx-thumb').forEach(t=>t.classList.remove('sel'));el.classList.add('sel');}
+  const e=document.getElementById('sl'+idx);
+  if(e){const n=bslide(slides[idx],idx);n.id='sl'+idx;if(e.classList.contains('active'))n.classList.add('active');e.replaceWith(n);}
+}
+
+function upd(idx,key,val){
+  slides[idx][key]=val;
+  const e=document.getElementById('sl'+idx);
+  if(e){const n=bslide(slides[idx],idx);n.id='sl'+idx;if(e.classList.contains('active'))n.classList.add('active');e.replaceWith(n);}
+}
+
+function bdots(){
+  const d=document.getElementById('dots');if(!d)return;d.innerHTML='';
+  slides.forEach((_,i)=>{const dot=document.createElement('div');dot.className='dot'+(i===cur?' active':'');dot.onclick=()=>goTo(i);d.appendChild(dot);});
+}
+
+function goTo(n){
+  const all=document.querySelectorAll('.slide');const d=document.getElementById('dots');
+  if(!all.length||!d)return;
+  all[cur].classList.remove('active');d.children[cur]?.classList.remove('active');
+  cur=n;all[cur].classList.add('active');d.children[cur]?.classList.add('active');
+  document.getElementById('sct').textContent=`${cur+1} of ${slides.length}`;
+  document.getElementById('pb').disabled=cur===0;document.getElementById('nb2').disabled=cur===slides.length-1;
+}
+
+function mv(dir){const n=cur+dir;if(n>=0&&n<slides.length)goTo(n);}
+
+// Save & restore API key
+window.addEventListener('DOMContentLoaded',()=>{
+  const k=localStorage.getItem('velum_key');
+  if(k)document.getElementById('akey').value=k;
+});
+
+
+let logoDataUrl = null;
+
+let savedRange = null;
+
+function saveSelection() {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange();
+}
+
+function restoreAndApply(cmd, val) {
+  if (!savedRange) return;
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(savedRange);
+  const range = sel.getRangeAt(0);
+  if (cmd === 'removeFormat') {
+    const text = document.createTextNode(range.toString());
+    range.deleteContents();
+    range.insertNode(text);
+    savedRange = null;
+    return;
+  }
+  const span = document.createElement('span');
+  if (cmd === 'bold') span.style.fontWeight = '600';
+  else if (cmd === 'italic') span.style.fontStyle = 'italic';
+  else if (cmd === 'underline') span.style.textDecoration = 'underline';
+  else if (cmd === 'foreColor') span.style.color = val;
+  else if (cmd === 'fontSize') span.style.fontSize = val;
+  try { range.surroundContents(span); }
+  catch(e) { const x = range.extractContents(); span.appendChild(x); range.insertNode(span); }
+  savedRange = null;
+}
+
+function fmt(cmd, val) {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+    savedRange = sel.getRangeAt(0).cloneRange();
+  }
+  restoreAndApply(cmd, val);
+}
+
+
+// Logo
+function loadLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    logoDataUrl = e.target.result;
+    const img = document.getElementById('logo-img');
+    img.src = logoDataUrl;
+    img.style.display = 'block';
+    document.getElementById('logo-hint').style.display = 'none';
+    updateLogosOnSlides();
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateLogosOnSlides() {
+  document.querySelectorAll('.slide-logo').forEach(el => el.remove());
+  if (!logoDataUrl) return;
+  document.querySelectorAll('.slide').forEach(slide => {
+    const img = document.createElement('img');
+    img.className = 'slide-logo';
+    img.src = logoDataUrl;
+    img.style.cssText = 'position:absolute;bottom:32px;right:20px;max-height:28px;max-width:80px;object-fit:contain;opacity:0.8';
+    slide.appendChild(img);
+  });
+}
+
+// Download all slides as PNGs
+async function dlAll() {
+  if (!slides.length) { alert('Generate a carousel first.'); return; }
+  const sc = document.querySelector('#canvas .sc');
+  if (!sc) return;
+  const allSlides = sc.querySelectorAll('.slide');
+  
+  // Load html2canvas
+  if (!window.html2canvas) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  const st = document.getElementById('stxt');
+  for (let i = 0; i < allSlides.length; i++) {
+    st.textContent = `Exporting slide ${i+1} of ${allSlides.length}...`;
+    const slide = allSlides[i];
+    const wasHidden = !slide.classList.contains('active');
+    slide.classList.add('active');
+    await new Promise(r => setTimeout(r, 80));
+    const canvas = await html2canvas(slide, { scale: 2, useCORS: true, backgroundColor: '#111111', width: 480, height: 480 });
+    const a = document.createElement('a');
+    a.download = `velum-slide-${String(i+1).padStart(2,'0')}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    await new Promise(r => setTimeout(r, 300));
+    if (wasHidden) slide.classList.remove('active');
+  }
+  // Restore active slide
+  goTo(cur);
+  st.textContent = `${allSlides.length} slides downloaded`;
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'||e.target.isContentEditable)return;
+  if(e.key==='ArrowRight')mv(1);if(e.key==='ArrowLeft')mv(-1);
+});
+</script>
+</body>
+</html>
