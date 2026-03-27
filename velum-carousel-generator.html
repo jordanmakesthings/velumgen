@@ -481,9 +481,10 @@ function goTo(n){
 function mv(dir){const n=cur+dir;if(n>=0&&n<slides.length)goTo(n);}
 
 // Save & restore API key
+const DEFAULT_KEY='XYwXM9Yz0DLhiiS8VIuy3Inqok9K8YlIZbV6PfsCkzhqrx2oAcCfXiIYjpg0PxbDkwmtKocMJMH20Zg-b1JF-wAA';
 window.addEventListener('DOMContentLoaded',()=>{
-  const k=localStorage.getItem('velum_key');
-  if(k)document.getElementById('akey').value=k;
+  const k=localStorage.getItem('velum_key')||DEFAULT_KEY;
+  document.getElementById('akey').value=k;
 });
 
 
